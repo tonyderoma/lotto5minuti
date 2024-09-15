@@ -23,7 +23,15 @@ public class Lotto5Minuti extends PilotSupport {
    private  PList<Integer> giocata = pl(17,47,67,87,77,27);
 
    private PList<PList<Integer>> giocateMultiple=pl();
-   private String giornoDaScaricare=null;
+
+   private String oggi=pd().toStringFormat("yyyy-MM-dd");
+   private String ieri=pd(oggi).addDays(-1).toStringFormat("yyyy-MM-dd");
+   private String altroIeri=pd(oggi).addDays(-2).toStringFormat("yyyy-MM-dd");
+   private String unaSettimanaFa=pd(oggi).addDays(-7).toStringFormat("yyyy-MM-dd");
+   private String dueSettimaneFa=pd(oggi).addDays(-14).toStringFormat("yyyy-MM-dd");
+   private String treSettimaneFa=pd(oggi).addDays(-21).toStringFormat("yyyy-MM-dd");
+    private String unMeseFa=pd(oggi).addMonths(-1).toStringFormat("yyyy-MM-dd");
+   private String giornoDaScaricare=oggi;
     private final Boolean oro = true;
     private final Boolean doppioOro = true;
     private final Boolean extra = false;
