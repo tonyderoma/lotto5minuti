@@ -30,12 +30,6 @@ public class Estrazione5Minuti extends PilotSupport{
     private String msgOro="PRESO ORO ";
     private String msgDoppioOro="PRESO DOPPIO ORO ";
 
-    private PList<Integer> trovati=pl();
-    private PList<Integer> trovatiExtra=pl();
-
-    private Integer maxTrovati;
-    private Integer maxTrovatiExtra;
-
     public Estrazione5Minuti(String row) {
         String nums = substring(row, tab(), false, false, tab2(), false, true);
         String ori = substring(row, tab2(), false, true, null, false, false);
@@ -120,7 +114,6 @@ public class Estrazione5Minuti extends PilotSupport{
 
     private void addTrovati(){
         Integer tr=getQuantiTrovati();
-        trovati.add(tr);
         msgTrovati+=str(tr,"/",getGiocata().size(),"  ");
     }
 
@@ -135,7 +128,6 @@ public class Estrazione5Minuti extends PilotSupport{
 
     private void addTrovatiExtra(){
         Integer tr=getQuantiTrovatiExtra();
-        trovatiExtra.add(tr);
         msgTrovatiExtra+=str(tr,"/",getGiocata().size(),"  ");
     }
 
@@ -212,9 +204,7 @@ public class Estrazione5Minuti extends PilotSupport{
         return spesaTotale;
     }
 
-    public void setSpesa(Integer spesa) {
-        this.spesa = spesa;
-    }
+
 
     public boolean presoOro() {
         boolean ret=false;
@@ -256,11 +246,4 @@ public class Estrazione5Minuti extends PilotSupport{
         this.giocataExtra = giocataExtra;
     }
 
-    public Integer getMaxTrovati() {
-        return trovati.max();
-    }
-
-    public Integer getMaxTrovatiExtra() {
-        return trovatiExtra.max();
-    }
 }
