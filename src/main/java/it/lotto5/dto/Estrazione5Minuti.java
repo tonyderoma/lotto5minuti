@@ -1,12 +1,12 @@
 package it.lotto5.dto;
 
-import it.eng.pilot.PilotSupport;
 import it.eng.pilot.PList;
+import it.eng.pilot.PilotSupport;
 
 import java.util.Date;
 
 
-public class Estrazione5Minuti extends PilotSupport{
+public class Estrazione5Minuti extends PilotSupport {
 
 
     private int numero;
@@ -16,7 +16,7 @@ public class Estrazione5Minuti extends PilotSupport{
     private Integer oro;
     private Integer doppioOro;
     private PList<Integer> giocata = pl();
-    private Integer vincita=0;
+    private Integer vincita = 0;
     private Integer spesa = 1;
 
     private Integer spesaTotale = 0;
@@ -24,11 +24,11 @@ public class Estrazione5Minuti extends PilotSupport{
     private boolean doppioOroGiocato;
     private boolean giocataExtra;
 
-    private String msgTrovati="Trovati: ";
-    private String msgTrovatiExtra="Trovati Extra: ";
+    private String msgTrovati = "Trovati: ";
+    private String msgTrovatiExtra = "Trovati Extra: ";
 
-    private String msgOro="PRESO ORO ";
-    private String msgDoppioOro="PRESO DOPPIO ORO ";
+    private String msgOro = "PRESO ORO ";
+    private String msgDoppioOro = "PRESO DOPPIO ORO ";
 
     public Estrazione5Minuti(String row) {
         String nums = substring(row, tab(), false, false, tab2(), false, true);
@@ -52,8 +52,8 @@ public class Estrazione5Minuti extends PilotSupport{
         d = str(ita, " ", ora, ":00");
         setData(pd(d));
         setEstrazione(split(nums, tab()).toListInteger());
-        msgOro+=getOro()+":";
-        msgDoppioOro+=getDoppioOro()+":";
+        msgOro += getOro() + ":";
+        msgDoppioOro += getDoppioOro() + ":";
     }
 
     public int getNumero() {
@@ -112,51 +112,51 @@ public class Estrazione5Minuti extends PilotSupport{
         return intersection(getEstrazione(), getGiocata()).size();
     }
 
-    private void addTrovati(){
-        Integer tr=getQuantiTrovati();
-        msgTrovati+=str(tr,"/",getGiocata().size(),"  ");
+    private void addTrovati() {
+        Integer tr = getQuantiTrovati();
+        msgTrovati += str(tr, "/", getGiocata().size(), "  ");
     }
 
-    public void impostaTrovati(){
+    public void impostaTrovati() {
         addTrovati();
         addTrovatiExtra();
     }
 
-    public String getMsgTrovati(){
+    public String getMsgTrovati() {
         return msgTrovati;
     }
 
-    private void addTrovatiExtra(){
-        Integer tr=getQuantiTrovatiExtra();
-        msgTrovatiExtra+=str(tr,"/",getGiocata().size(),"  ");
+    private void addTrovatiExtra() {
+        Integer tr = getQuantiTrovatiExtra();
+        msgTrovatiExtra += str(tr, "/", getGiocata().size(), "  ");
     }
 
 
-
-    private void addMessaggioOro(){
-        msgOro+=str(sn(presoOro())," ");
-    }
-    private void addMessaggioDoppioOro(){
-        msgDoppioOro+=str(sn(presoDoppioOro())," ");
+    private void addMessaggioOro() {
+        msgOro += str(sn(presoOro()), " ");
     }
 
-    public void impostaMsgOri(){
+    private void addMessaggioDoppioOro() {
+        msgDoppioOro += str(sn(presoDoppioOro()), " ");
+    }
+
+    public void impostaMsgOri() {
         addMessaggioOro();
         addMessaggioDoppioOro();
     }
 
 
-    public String getMsgOro(){
+    public String getMsgOro() {
         return msgOro;
     }
 
 
-    public String getMsgDoppioOro(){
+    public String getMsgDoppioOro() {
         return msgDoppioOro;
     }
 
 
-    public String getMsgTrovatiExtra(){
+    public String getMsgTrovatiExtra() {
         return msgTrovatiExtra;
     }
 
@@ -176,8 +176,8 @@ public class Estrazione5Minuti extends PilotSupport{
         String s = "";
         if (getVincita() > 0)
             s = str("VINCITA!!!!!...", money((bd(getVincita()))));
-        return str(lf(), s, "    ", getDataString(),"   ", getMsgTrovati(), getMsgTrovatiExtra(),
-               getMsgOro() ,"    ",getMsgDoppioOro(), lf2());
+        return str(lf(), s, "    ", getDataString(), "   ", getMsgTrovati(), getMsgTrovatiExtra(),
+                getMsgOro(), "    ", getMsgDoppioOro(), lf2());
     }
 
     public Integer getVincita() {
@@ -186,7 +186,7 @@ public class Estrazione5Minuti extends PilotSupport{
 
 
     public void addVincita(Integer vincita) {
-        this.vincita+= vincita;
+        this.vincita += vincita;
     }
 
     public Integer getSpesa() {
@@ -196,8 +196,9 @@ public class Estrazione5Minuti extends PilotSupport{
             return spesa * 3;
         return isOroGiocato() ? spesa * 2 : spesa;
     }
+
     public void addSpesa() {
-        this.spesaTotale+= getSpesa();
+        this.spesaTotale += getSpesa();
     }
 
     public Integer getSpesaTotale() {
@@ -205,14 +206,13 @@ public class Estrazione5Minuti extends PilotSupport{
     }
 
 
-
     public boolean presoOro() {
-        boolean ret=false;
-        PList<Integer> inters=pl(intersection(getEstrazione(), getGiocata()));
-        if (isOroGiocato() && !isDoppioOroGiocato()){
-            ret=inters.contains(getOro());
-        }else if (isOroGiocato()&&isDoppioOroGiocato()){
-            ret=almenoUna(inters.contains(getOro()),inters.contains(getDoppioOro()));
+        boolean ret = false;
+        PList<Integer> inters = pl(intersection(getEstrazione(), getGiocata()));
+        if (isOroGiocato() && !isDoppioOroGiocato()) {
+            ret = inters.contains(getOro());
+        } else if (isOroGiocato() && isDoppioOroGiocato()) {
+            ret = almenoUna(inters.contains(getOro()), inters.contains(getDoppioOro()));
         }
         return ret;
     }
@@ -244,6 +244,32 @@ public class Estrazione5Minuti extends PilotSupport{
 
     public void setGiocataExtra(boolean giocataExtra) {
         this.giocataExtra = giocataExtra;
+    }
+
+
+    private boolean isCadenza(Integer n, Integer cadenza) {
+        return zero((n - cadenza) % 10);
+    }
+
+    public String getCadenze() {
+        return getCadenze(5);
+    }
+
+    public String getCadenze(Integer almeno) {
+        String cad = "";
+        PList<Integer> sottoEstrazione = pl();
+        for (int i = 0; i <= 9; i++) {
+            sottoEstrazione = pl();
+            for (Integer numero : safe(estrazione)) {
+                if (isCadenza(numero, i)) {
+                    sottoEstrazione.add(numero);
+                }
+            }
+            if (sottoEstrazione.size() >= almeno) {
+                cad = str(cad, getDataString(), "   Cadenza ", i, ":", sottoEstrazione.concatenaDash(), lf());
+            }
+        }
+        return cad;
     }
 
 }

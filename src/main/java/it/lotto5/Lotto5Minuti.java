@@ -5,6 +5,7 @@ import it.eng.pilot.PilotSupport;
 import it.lotto5.dto.Estrazione5Minuti;
 import it.lotto5.dto.Frequenza;
 import it.lotto5.dto.Vincita;
+import org.apache.log4j.BasicConfigurator;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -15,30 +16,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.BasicConfigurator;
-
 public class Lotto5Minuti extends PilotSupport {
-   private Integer ultimeEstrazioni=null;//limito la verifica alle ultime 10 estrazioni più recenti
-   //private  PList<Integer> giocata = pl(Lotto5Minuti.generaGiocata(7,1,10));
-   private  PList<Integer> giocata = pl(17,47,67,87,77,27);
+    private Integer ultimeEstrazioni = null;//limito la verifica alle ultime 10 estrazioni più recenti
+    //private  PList<Integer> giocata = pl(Lotto5Minuti.generaGiocata(7,1,10));
+    private PList<Integer> giocata = pl(17, 47, 67, 87, 77, 27);
 
-   private PList<PList<Integer>> giocateMultiple=pl();
+    private PList<PList<Integer>> giocateMultiple = pl();
 
-   private String oggi=pd().toStringFormat("yyyy-MM-dd");
-   private String ieri=ieri().toStringFormat("yyyy-MM-dd");
-   private String altroIeri=giorniFa(2).toStringFormat("yyyy-MM-dd");
-   private String unaSettimanaFa=settimaneFa(1).toStringFormat("yyyy-MM-dd");
-   private String dueSettimaneFa=settimaneFa(2).toStringFormat("yyyy-MM-dd");
-   private String treSettimaneFa=settimaneFa(3).toStringFormat("yyyy-MM-dd");
-    private String unMeseFa=mesiFa(1).toStringFormat("yyyy-MM-dd");
-   private String giornoDaScaricare=null;
+    private String oggi = pd().toStringFormat("yyyy-MM-dd");
+    private String ieri = ieri().toStringFormat("yyyy-MM-dd");
+    private String altroIeri = giorniFa(2).toStringFormat("yyyy-MM-dd");
+    private String unaSettimanaFa = settimaneFa(1).toStringFormat("yyyy-MM-dd");
+    private String dueSettimaneFa = settimaneFa(2).toStringFormat("yyyy-MM-dd");
+    private String treSettimaneFa = settimaneFa(3).toStringFormat("yyyy-MM-dd");
+    private String unMeseFa = mesiFa(1).toStringFormat("yyyy-MM-dd");
+    private String giornoDaScaricare = null;
     private final Boolean oro = true;
     private final Boolean doppioOro = true;
     private final Boolean extra = false;
 
     PList<Estrazione5Minuti> estrazioni = pl();
-    Map<Integer,Integer> frequenze=new HashMap<>();
-
+    Map<Integer, Integer> frequenze = new HashMap<>();
 
 
     private static final String FILE = "lotto5minuti.txt";
@@ -48,39 +46,43 @@ public class Lotto5Minuti extends PilotSupport {
 
     public static void main(String[] args) throws Exception {
         Lotto5Minuti l = new Lotto5Minuti();
-         BasicConfigurator.configure();
-         l.loadGiocate();
-         l.download();
-         l.init();
-         l.loadEstrazioni();
-         l.execute();
-      }
+        BasicConfigurator.configure();
+        l.loadGiocate();
+        l.download();
+        l.init();
+        l.loadEstrazioni();
+        //l.execute();
+        l.stampaCadenze();
+    }
 
-      private void loadGiocate(){
-        String sep=" ";
-        for (String l:safe(readFile("giocate.txt"))){
-            if (l.indexOf(tab())>-1){
-                sep=tab();
+    private void loadGiocate() {
+        String sep = " ";
+        for (String l : safe(readFile("giocate.txt"))) {
+            if (l.indexOf(tab()) > -1) {
+                sep = tab();
             }
-        giocateMultiple.add(split(l,sep).toListInteger());
+            giocateMultiple.add(split(l, sep).toListInteger());
         }
         giocateMultiple.add(giocata);
-      }
+    }
 
-      private static List<Integer> generaGiocata(Integer lunghezza,Integer min,Integer max){
-        List<Integer> giocata=new ArrayList<>();
-        for (int i=1; i<=lunghezza; i++){
-            Integer numero=generaNumeroCasuale(min,max);
-            if (giocata.contains(numero)){i--; continue;}
+    private static List<Integer> generaGiocata(Integer lunghezza, Integer min, Integer max) {
+        List<Integer> giocata = new ArrayList<>();
+        for (int i = 1; i <= lunghezza; i++) {
+            Integer numero = generaNumeroCasuale(min, max);
+            if (giocata.contains(numero)) {
+                i--;
+                continue;
+            }
             giocata.add(numero);
         }
-    return giocata;
-      }
+        return giocata;
+    }
 
-      private static Integer generaNumeroCasuale(Integer min,Integer max){
-          Integer d=Double.valueOf (Math.floor(Math.random() * (max - min + 1)) + min).intValue();
-          return d;
-      }
+    private static Integer generaNumeroCasuale(Integer min, Integer max) {
+        Integer d = Double.valueOf(Math.floor(Math.random() * (max - min + 1)) + min).intValue();
+        return d;
+    }
 
     private void init() {
         PList<Vincita> uno = pl(new Vincita(0, 0), new Vincita(1, 3, 63, 0, 4));
@@ -127,10 +129,9 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-
     private void download() throws Exception {
         System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.3");
-        String giorno=Null(giornoDaScaricare)?pd().toStringFormat("yyyy-MM-dd"):giornoDaScaricare;
+        String giorno = Null(giornoDaScaricare) ? pd().toStringFormat("yyyy-MM-dd") : giornoDaScaricare;
         String fileURL = str(URL, giorno);
 
 /*
@@ -183,18 +184,19 @@ public class Lotto5Minuti extends PilotSupport {
             estrazioni.add(es);
         }
     }
+
     private void execute() throws Exception {
         //PList<Integer> giocataFrequenti=calcolaFrequenze(80,88);
         //log("GIOCATI NUMERI:",giocataFrequenti.concatenaDash());
         //giocata=getGiocataFibonacci(8);
-        for (PList<Integer> giocata:giocateMultiple) {
+        for (PList<Integer> giocata : giocateMultiple) {
             log("GIOCATI NUMERI:", giocata.concatenaDash());
         }
         Integer oriPresi = 0;
         Integer doppioOriPresi = 0;
-        if (notNull(ultimeEstrazioni)) estrazioni=estrazioni.cutToFirst(ultimeEstrazioni);
+        if (notNull(ultimeEstrazioni)) estrazioni = estrazioni.cutToFirst(ultimeEstrazioni);
         for (Estrazione5Minuti es : safe(estrazioni)) {
-            for (PList<Integer> giocata:safe(giocateMultiple)) {
+            for (PList<Integer> giocata : safe(giocateMultiple)) {
                 es.setGiocata(giocata);
                 es.setOroGiocato(oro);
                 es.setDoppioOroGiocato(doppioOro);
@@ -208,88 +210,98 @@ public class Lotto5Minuti extends PilotSupport {
                 es.impostaTrovati();
                 es.impostaMsgOri();
             }
-            }
+        }
         // estrazioni.sortDesc("quantiTrovati", "quantiTrovatiExtra");
         estrazioni.sortDesc("vincita");
         for (Estrazione5Minuti e : estrazioni) {
-            if (e.getVincita()>0)
-            log(e);
+            if (e.getVincita() > 0)
+                log(e);
         }
-        log(getTitle("REPORT FINALE",80,"*"));
-      //  log("Max Trovati", estrazioni.max("maxTrovati"));
-       // log("Max Trovati Extra", estrazioni.max("maxTrovatiExtra"));
+        log(getTitle("REPORT FINALE", 80, "*"));
+        //  log("Max Trovati", estrazioni.max("maxTrovati"));
+        // log("Max Trovati Extra", estrazioni.max("maxTrovatiExtra"));
         Integer vincitaTotale = estrazioni.sommatoria("vincita", Integer.class);
         Integer spesaTotale = estrazioni.sommatoria("spesaTotale", Integer.class);
 
-        log(str(lf(),tabn(5), "VINCITA TOTALE:", money(bd(vincitaTotale)), lf(),tabn(5), "SPESA TOTALE:", money(bd(spesaTotale)), lf(),tabn(5), "BILANCIO:", money(bd(vincitaTotale - spesaTotale))));
-        if (almenoUna(oro,doppioOro))
-            log(str(lf(),tabn(5), "ORO preso:", oriPresi, " volte"));
+        log(str(lf(), tabn(5), "VINCITA TOTALE:", money(bd(vincitaTotale)), lf(), tabn(5), "SPESA TOTALE:", money(bd(spesaTotale)), lf(), tabn(5), "BILANCIO:", money(bd(vincitaTotale - spesaTotale))));
+        if (almenoUna(oro, doppioOro))
+            log(str(lf(), tabn(5), "ORO preso:", oriPresi, " volte"));
         if (doppioOro)
-            log(str(lf(),tabn(5), "DOPPIO ORO preso:", doppioOriPresi, " volte"));
+            log(str(lf(), tabn(5), "DOPPIO ORO preso:", doppioOriPresi, " volte"));
     }
 
-    private PList<PList<Integer>> getEstrazioniFibonacci(){
-        PList<Integer> fb=getFibonacci();
-        PList<PList<Integer>> rows=pl();
-         for (Integer i:fb){
-        rows.add(estrazioni.get(i).getEstrazione());
-         }
+    private PList<PList<Integer>> getEstrazioniFibonacci() {
+        PList<Integer> fb = getFibonacci();
+        PList<PList<Integer>> rows = pl();
+        for (Integer i : fb) {
+            rows.add(estrazioni.get(i).getEstrazione());
+        }
         return rows;
     }
 
-    private PList<Integer> getGiocataFibonacci(Integer l){
-        PList<Integer> giocataFibonacci=pl();
-        PList<Integer> fb=getFibonacci();
-        PList<PList<Integer>> estrazioniFibonacci=getEstrazioniFibonacci();
-        int i=0;
-        for(PList<Integer> n:estrazioniFibonacci){
-            if (giocataFibonacci.size()==l.intValue()) break;
-            int fibo=fb.get(i);
-            int numero=0;
-             if (n.size()<fibo){
-                Integer quot=fibo/n.size();
-                Integer quanti=n.size()*quot;
-                Integer resto=fibo-quanti;
-                numero=n.get(resto);
-            }else{
-            numero=n.get(fibo);
+    private PList<Integer> getGiocataFibonacci(Integer l) {
+        PList<Integer> giocataFibonacci = pl();
+        PList<Integer> fb = getFibonacci();
+        PList<PList<Integer>> estrazioniFibonacci = getEstrazioniFibonacci();
+        int i = 0;
+        for (PList<Integer> n : estrazioniFibonacci) {
+            if (giocataFibonacci.size() == l.intValue()) break;
+            int fibo = fb.get(i);
+            int numero = 0;
+            if (n.size() < fibo) {
+                Integer quot = fibo / n.size();
+                Integer quanti = n.size() * quot;
+                Integer resto = fibo - quanti;
+                numero = n.get(resto);
+            } else {
+                numero = n.get(fibo);
             }
-             if (!giocataFibonacci.contains(numero))
-             giocataFibonacci.add(numero);
-             i++;
+            if (!giocataFibonacci.contains(numero))
+                giocataFibonacci.add(numero);
+            i++;
         }
-    return giocataFibonacci;
+        return giocataFibonacci;
     }
-private PList<Integer> getFibonacci(){
-       PList<Integer> fb=pl();
-    int a = 0, b = 1;
-     //fb.add(1);
-    for (int i = 2; i <= 13; ++i) {
-        int c = a + b;
-       fb.add(c);
-        a = b;
-        b = c;
+
+    private PList<Integer> getFibonacci() {
+        PList<Integer> fb = pl();
+        int a = 0, b = 1;
+        //fb.add(1);
+        for (int i = 2; i <= 13; ++i) {
+            int c = a + b;
+            fb.add(c);
+            a = b;
+            b = c;
+        }
+        return fb;
     }
-    return fb;
-}
 
     private PList<Integer> calcolaFrequenze(Integer da, Integer a) throws Exception {
-    for(Estrazione5Minuti e:safe(estrazioni)){
-        for (Integer n: safe(e.getEstrazione())){
-            if (Null(frequenze.get(n))){
-                frequenze.put(n,1);
-            }else{
-                frequenze.put(n,frequenze.get(n)+1);
+        for (Estrazione5Minuti e : safe(estrazioni)) {
+            for (Integer n : safe(e.getEstrazione())) {
+                if (Null(frequenze.get(n))) {
+                    frequenze.put(n, 1);
+                } else {
+                    frequenze.put(n, frequenze.get(n) + 1);
+                }
             }
         }
-    }
-    PList<Frequenza> frequencies=pl();
+        PList<Frequenza> frequencies = pl();
         for (Map.Entry<Integer, Integer> entry : frequenze.entrySet()) {
-            frequencies.add(new Frequenza(entry.getKey(),entry.getValue()));
-             }
-    frequencies.sort("freq");
-    PList<Frequenza> subFreq=pl(frequencies.subList(da,a));
-    return subFreq.narrow("numero");
+            frequencies.add(new Frequenza(entry.getKey(), entry.getValue()));
+        }
+        frequencies.sort("freq");
+        PList<Frequenza> subFreq = pl(frequencies.subList(da, a));
+        return subFreq.narrow("numero");
+    }
+
+
+    private void stampaCadenze() {
+        for (Estrazione5Minuti e : safe(estrazioni)) {
+            String cad = e.getCadenze(6);
+            if (Null(cad)) continue;
+            log(cad);
+        }
     }
 
 }
