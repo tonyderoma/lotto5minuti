@@ -184,6 +184,10 @@ public class Estrazione5Minuti extends PilotSupport {
         return vincita;
     }
 
+    public Integer getBilancio() {
+        return getVincita() - getSpesa();
+    }
+
 
     public void addVincita(Integer vincita) {
         this.vincita += vincita;
@@ -266,10 +270,31 @@ public class Estrazione5Minuti extends PilotSupport {
                 }
             }
             if (sottoEstrazione.size() >= almeno) {
-                cad = str(cad, getDataString(), "   Cadenza ", i, ":", sottoEstrazione.concatenaDash(), lf());
+                cad = str(cad, getDataString(), "   Cadenza: ", i, ":", sottoEstrazione.concatenaDash(), lf());
             }
         }
         return cad;
     }
 
+    public PList<PList<Integer>> getConsecutivi(Integer n) {
+        PList<PList<Integer>> consecutivi = pl();
+        PList<Integer> successivi = pl();
+        for (int i = 0; i < estrazione.size(); i++) {
+            if (!successivi.contains(estrazione.get(i)))
+                successivi.add(estrazione.get(i));
+            if (i == estrazione.size() - 1) continue;
+            if (estrazione.get(i).equals(estrazione.get(i + 1) - 1)) {
+                successivi.add(estrazione.get(i + 1));
+            } else {
+                if (successivi.size() >= n) {
+                    consecutivi.add(successivi);
+                    successivi = pl();
+                } else {
+                    successivi = pl();
+                }
+            }
+
+        }
+        return consecutivi;
+    }
 }

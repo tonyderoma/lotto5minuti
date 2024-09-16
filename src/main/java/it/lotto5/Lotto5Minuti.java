@@ -31,8 +31,8 @@ public class Lotto5Minuti extends PilotSupport {
     private String treSettimaneFa = settimaneFa(3).toStringFormat("yyyy-MM-dd");
     private String unMeseFa = mesiFa(1).toStringFormat("yyyy-MM-dd");
     private String giornoDaScaricare = null;
-    private final Boolean oro = true;
-    private final Boolean doppioOro = true;
+    private final Boolean oro = false;
+    private final Boolean doppioOro = false;
     private final Boolean extra = false;
 
     PList<Estrazione5Minuti> estrazioni = pl();
@@ -53,6 +53,7 @@ public class Lotto5Minuti extends PilotSupport {
         l.loadEstrazioni();
         //l.execute();
         l.stampaCadenze();
+        l.stampaConsecutivi();
     }
 
     private void loadGiocate() {
@@ -213,6 +214,8 @@ public class Lotto5Minuti extends PilotSupport {
         }
         // estrazioni.sortDesc("quantiTrovati", "quantiTrovatiExtra");
         estrazioni.sortDesc("vincita");
+        Integer vincite = estrazioni.gt("vincita", 0).find().size();
+        log("-------------- VINCENTI ", vincite, "/", estrazioni.size(), "   ", percentuale(bd(vincite), bd(estrazioni.size())), "%");
         for (Estrazione5Minuti e : estrazioni) {
             if (e.getVincita() > 0)
                 log(e);
@@ -228,6 +231,7 @@ public class Lotto5Minuti extends PilotSupport {
             log(str(lf(), tabn(5), "ORO preso:", oriPresi, " volte"));
         if (doppioOro)
             log(str(lf(), tabn(5), "DOPPIO ORO preso:", doppioOriPresi, " volte"));
+        log("-------------- VINCENTI ", vincite, "/", estrazioni.size(), "   ", percentuale(bd(vincite), bd(estrazioni.size())), "%");
     }
 
     private PList<PList<Integer>> getEstrazioniFibonacci() {
@@ -301,6 +305,15 @@ public class Lotto5Minuti extends PilotSupport {
             String cad = e.getCadenze(6);
             if (Null(cad)) continue;
             log(cad);
+        }
+    }
+
+    private void stampaConsecutivi() {
+        for (Estrazione5Minuti e : safe(estrazioni)) {
+            PList<PList<Integer>> consecutivi = e.getConsecutivi(6);
+            if (Null(consecutivi)) continue;
+            for (PList<Integer> cons : consecutivi)
+                log(e.getDataString(), "Consecutivi: ", cons.concatenaDash());
         }
     }
 
