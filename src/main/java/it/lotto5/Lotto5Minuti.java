@@ -19,7 +19,7 @@ import java.util.Map;
 public class Lotto5Minuti extends PilotSupport {
     private Integer ultimeEstrazioni = null;//limito la verifica alle ultime 10 estrazioni più recenti
     //private  PList<Integer> giocata = pl(Lotto5Minuti.generaGiocata(7,1,10));
-    private PList<Integer> giocata = pl(17, 47, 67, 87, 77, 27);
+    private PList<Integer> giocata = pl(4, 19, 24, 38, 41, 47, 56, 78);
 
     private PList<PList<Integer>> giocateMultiple = pl();
 
@@ -30,9 +30,9 @@ public class Lotto5Minuti extends PilotSupport {
     private String dueSettimaneFa = settimaneFa(2).toStringFormat("yyyy-MM-dd");
     private String treSettimaneFa = settimaneFa(3).toStringFormat("yyyy-MM-dd");
     private String unMeseFa = mesiFa(1).toStringFormat("yyyy-MM-dd");
-    private String giornoDaScaricare = null;
-    private final Boolean oro = false;
-    private final Boolean doppioOro = false;
+    private String giornoDaScaricare = ieri;
+    private Boolean oro = false;
+    private Boolean doppioOro = true;
     private final Boolean extra = false;
 
     PList<Estrazione5Minuti> estrazioni = pl();
@@ -51,12 +51,13 @@ public class Lotto5Minuti extends PilotSupport {
         l.download();
         l.init();
         l.loadEstrazioni();
-        //l.execute();
+        l.execute();
         l.stampaCadenze();
         l.stampaConsecutivi();
     }
 
     private void loadGiocate() {
+        if (oro && doppioOro) oro = false;
         String sep = " ";
         for (String l : safe(readFile("giocate.txt"))) {
             if (l.indexOf(tab()) > -1) {

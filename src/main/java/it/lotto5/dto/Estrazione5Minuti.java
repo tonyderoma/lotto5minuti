@@ -215,7 +215,7 @@ public class Estrazione5Minuti extends PilotSupport {
         PList<Integer> inters = pl(intersection(getEstrazione(), getGiocata()));
         if (isOroGiocato() && !isDoppioOroGiocato()) {
             ret = inters.contains(getOro());
-        } else if (isOroGiocato() && isDoppioOroGiocato()) {
+        } else if (isDoppioOroGiocato()) {
             ret = almenoUna(inters.contains(getOro()), inters.contains(getDoppioOro()));
         }
         return ret;
