@@ -25,4 +25,12 @@ public class Frequenza {
     public void setFreq(Integer freq) {
         this.freq = freq;
     }
+
+    public String toString() {
+        return getNumero() + "-->" + getFreq();
+    }
+
+    public String getFreqString() {
+        return toString();
+    }
 }

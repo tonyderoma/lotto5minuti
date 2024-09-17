@@ -17,9 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 public class Lotto5Minuti extends PilotSupport {
-    private Integer ultimeEstrazioni = null;//limito la verifica alle ultime 10 estrazioni più recenti
+    public static final String FREQUENZE = "frequenze.txt";
+    private Integer ultimeEstrazioni = 10;//limito la verifica alle ultime 10 estrazioni più recenti
     //private  PList<Integer> giocata = pl(Lotto5Minuti.generaGiocata(7,1,10));
-    private PList<Integer> giocata = pl(4, 19, 24, 38, 41, 47, 56, 78);
+    private PList<Integer> giocata = pl();
 
     private PList<PList<Integer>> giocateMultiple = pl();
 
@@ -30,7 +31,7 @@ public class Lotto5Minuti extends PilotSupport {
     private String dueSettimaneFa = settimaneFa(2).toStringFormat("yyyy-MM-dd");
     private String treSettimaneFa = settimaneFa(3).toStringFormat("yyyy-MM-dd");
     private String unMeseFa = mesiFa(1).toStringFormat("yyyy-MM-dd");
-    private String giornoDaScaricare = ieri;
+    private String giornoDaScaricare = null;
     private Boolean oro = false;
     private Boolean doppioOro = true;
     private final Boolean extra = false;
@@ -51,9 +52,42 @@ public class Lotto5Minuti extends PilotSupport {
         l.download();
         l.init();
         l.loadEstrazioni();
+        l.elaboraFrequenze();
         l.execute();
+
         l.stampaCadenze();
         l.stampaConsecutivi();
+    }
+
+
+    private void elaboraFrequenze() throws Exception {
+        PList<Frequenza> fre = leggiFrequenze();
+        PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
+        PList<Integer> frequenzeEstratte = pl();
+        if (notNull(fre))
+            for (Integer i : ultimaEstrazione) {
+                Frequenza f = fre.eq("numero", i).findOne();
+                frequenzeEstratte.add(f.getFreq());
+            }
+        log("Frequenze estratte", frequenzeEstratte.sort().concatenaDash());
+
+       /* int finoA = 36;
+        log("Quanti minori di ", finoA, fre.lte("freq", finoA).find().size());
+        PList<Integer> numeriFrequenzeBasse = fre.lte("freq", finoA).find().narrow("numero");
+        log(numeriFrequenzeBasse.concatenaDash());
+        PList<Integer> giocata = pl();
+        for (int i = 1; i <= 8; i++) {
+
+            int pos = generaNumeroCasuale(0, numeriFrequenzeBasse.size() - 1);
+            int num = numeriFrequenzeBasse.get(pos);
+            if (giocata.contains(num)) {
+                i--;
+                continue;
+            }
+            giocata.add(numeriFrequenzeBasse.get(pos));
+        }
+        log("GIOCATA", giocata.concatenaDash());*/
+        salvaFrequenze();
     }
 
     private void loadGiocate() {
@@ -65,7 +99,8 @@ public class Lotto5Minuti extends PilotSupport {
             }
             giocateMultiple.add(split(l, sep).toListInteger());
         }
-        giocateMultiple.add(giocata);
+        if (notNull(giocata))
+            giocateMultiple.add(giocata);
     }
 
     private static List<Integer> generaGiocata(Integer lunghezza, Integer min, Integer max) {
@@ -281,7 +316,7 @@ public class Lotto5Minuti extends PilotSupport {
         return fb;
     }
 
-    private PList<Integer> calcolaFrequenze(Integer da, Integer a) throws Exception {
+    private PList<Frequenza> calcolaFrequenze() throws Exception {
         for (Estrazione5Minuti e : safe(estrazioni)) {
             for (Integer n : safe(e.getEstrazione())) {
                 if (Null(frequenze.get(n))) {
@@ -295,9 +330,26 @@ public class Lotto5Minuti extends PilotSupport {
         for (Map.Entry<Integer, Integer> entry : frequenze.entrySet()) {
             frequencies.add(new Frequenza(entry.getKey(), entry.getValue()));
         }
-        frequencies.sort("freq");
-        PList<Frequenza> subFreq = pl(frequencies.subList(da, a));
-        return subFreq.narrow("numero");
+        frequencies = frequencies.sortDesc("freq");
+        return frequencies;
+    }
+
+    private void salvaFrequenze() throws Exception {
+        PList<String> cont = calcolaFrequenze().narrow("freqString");
+        writeFile(FREQUENZE, cont);
+    }
+
+    private PList<Frequenza> leggiFrequenze() {
+        PList<String> cont = readFile(FREQUENZE);
+        PList<Frequenza> freq = pl();
+        for (String s : safe(cont)) {
+            PList<String> arr = split(s, "-->");
+            String frq = arr.getLastElement();
+            Integer numero = getInteger(arr.getFirstElement());
+            Integer fr = getInteger(frq);
+            freq.add(new Frequenza(numero, fr));
+        }
+        return freq;
     }
 
 
