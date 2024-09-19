@@ -114,7 +114,7 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovati() {
         Integer tr = getQuantiTrovati();
-        msgTrovati += str(tr, "/", getGiocata().size(), "  ");
+        msgTrovati += str(tr, "/", safe(getGiocata()).size(), "  ");
     }
 
     public void impostaTrovati() {
@@ -128,7 +128,7 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovatiExtra() {
         Integer tr = getQuantiTrovatiExtra();
-        msgTrovatiExtra += str(tr, "/", getGiocata().size(), "  ");
+        msgTrovatiExtra += str(tr, "/", safe(getGiocata()).size(), "  ");
     }
 
 
@@ -184,16 +184,13 @@ public class Estrazione5Minuti extends PilotSupport {
         return vincita;
     }
 
-    public Integer getBilancio() {
-        return getVincita() - getSpesa();
-    }
-
 
     public void addVincita(Integer vincita) {
         this.vincita += vincita;
     }
 
     public Integer getSpesa() {
+        if (Null(getGiocata())) return 0;
         if (giocataExtra)
             spesa = 2;
         if (isDoppioOroGiocato())

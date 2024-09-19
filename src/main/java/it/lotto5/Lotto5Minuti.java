@@ -7,6 +7,10 @@ import it.lotto5.dto.Frequenza;
 import it.lotto5.dto.Vincita;
 import org.apache.log4j.BasicConfigurator;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -18,7 +22,12 @@ import java.util.Map;
 
 public class Lotto5Minuti extends PilotSupport {
     public static final String FREQUENZE = "frequenze.txt";
-    private Integer ultimeEstrazioni = 10;//limito la verifica alle ultime 10 estrazioni più recenti
+    public static final String REPORT = "REPORT.TXT";
+    public Integer bilancioFinale = 0;
+    public Integer vincitaFinale = 0;
+
+    public Integer spesaFinale = 0;
+    private Integer ultimeEstrazioni = 1;//limito la verifica alle ultime 10 estrazioni più recenti
     //private  PList<Integer> giocata = pl(Lotto5Minuti.generaGiocata(7,1,10));
     private PList<Integer> giocata = pl();
 
@@ -33,7 +42,7 @@ public class Lotto5Minuti extends PilotSupport {
     private String unMeseFa = mesiFa(1).toStringFormat("yyyy-MM-dd");
     private String giornoDaScaricare = null;
     private Boolean oro = false;
-    private Boolean doppioOro = true;
+    private Boolean doppioOro = false;
     private final Boolean extra = false;
 
     PList<Estrazione5Minuti> estrazioni = pl();
@@ -48,54 +57,200 @@ public class Lotto5Minuti extends PilotSupport {
     public static void main(String[] args) throws Exception {
         Lotto5Minuti l = new Lotto5Minuti();
         BasicConfigurator.configure();
-        l.loadGiocate();
-        l.download();
-        l.init();
-        l.loadEstrazioni();
-        l.elaboraFrequenze();
-        l.execute();
-
-        l.stampaCadenze();
-        l.stampaConsecutivi();
+        //l.autorun();
+        l.run();
     }
 
+    private void run() throws Exception {
+        loadGiocate();
+        download();
+        init();
+        loadEstrazioni();
+        elaboraFrequenze();
+        execute();
+        stampaCadenze();
+        stampaConsecutivi();
+    }
+
+    private void autorun() throws Exception {
+        Integer oraStop = 24;
+        Integer minutiStop = 0;
+        vincitaFinale = 0;
+        spesaFinale = 0;
+        bilancioFinale = 0;
+        while (true) {
+            if (pd().isAfter(pd().ora(oraStop).minuti(minutiStop))) break;
+            Thread.sleep(10000);
+            if (pd().getMinuti() % 5 == 0) {
+                log("Scattati i 5 minuti ", pd().getOraCompleta(), " procedo con l'elaborazione!!!!!");
+                Thread.sleep(10000);
+                run();
+                frequenze = new HashMap<>();
+                giocateMultiple = pl();
+                giocata = pl();
+                Thread.sleep(60000);
+            }
+        }
+        PList<String> out = pl();
+        out.add(str("VINCITA:", money(bd(vincitaFinale))));
+        out.add(str("SPESA:", money(bd(spesaFinale))));
+        out.add(str("BILANCIO:", money(bd(bilancioFinale))));
+        appendFile(REPORT, out);
+    }
 
     private void elaboraFrequenze() throws Exception {
         PList<Frequenza> fre = leggiFrequenze();
         PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
+        PList<Integer> penultimaEstrazione = estrazioni.get(1).getEstrazione();
+        if (Null(penultimaEstrazione)) return;
         PList<Integer> frequenzeEstratte = pl();
+        PList<Integer> frequenzeEstrattePrecedenti = pl();
         if (notNull(fre))
             for (Integer i : ultimaEstrazione) {
                 Frequenza f = fre.eq("numero", i).findOne();
-                frequenzeEstratte.add(f.getFreq());
+                if (Null(f)) frequenzeEstratte.add(0);
+                else
+                    frequenzeEstratte.add(f.getFreq());
             }
-        log("Frequenze estratte", frequenzeEstratte.sort().concatenaDash());
+        for (Integer i : penultimaEstrazione) {
+            Frequenza f = fre.eq("numero", i).findOne();
+            if (Null(f)) frequenzeEstrattePrecedenti.add(0);
+            else
+                frequenzeEstrattePrecedenti.add(f.getFreq());
+        }
 
-       /* int finoA = 36;
-        log("Quanti minori di ", finoA, fre.lte("freq", finoA).find().size());
-        PList<Integer> numeriFrequenzeBasse = fre.lte("freq", finoA).find().narrow("numero");
-        log(numeriFrequenzeBasse.concatenaDash());
+        Integer posizioneMedia = 9;
+        frequenzeEstrattePrecedenti = frequenzeEstrattePrecedenti.sort();
+        frequenzeEstratte = frequenzeEstratte.sort();
+        log("Frequenze estratte precedenti", frequenzeEstrattePrecedenti.concatenaDash());
+        log("Frequenze estratte attuali   ", frequenzeEstratte.concatenaDash());
+        log("MIN FREQ:", fre.min("freq"), "   MAX FREQ:", fre.max("freq"));
+        Integer low = frequenzeEstrattePrecedenti.get(posizioneMedia - 2);
+        Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 2);
+        PList<Integer> numeriIntercettati = beccatiSottoFrequenze(fre, low, high);
+        generaGiocatePariDispari(numeriIntercettati, 5, pl(3, 4, 5, 6));
+        low = frequenzeEstrattePrecedenti.get(1);
+        high = frequenzeEstrattePrecedenti.get(6);
+        numeriIntercettati = beccatiSottoFrequenze(fre, low, high);
+        generaGiocatePariDispari(numeriIntercettati, 5, pl(3, 4, 5, 6));
+        low = frequenzeEstrattePrecedenti.get(13);
+        high = frequenzeEstrattePrecedenti.get(18);
+        numeriIntercettati = beccatiSottoFrequenze(fre, low, high);
+        generaGiocatePariDispari(numeriIntercettati, 5, pl(7, 8));
+        numeriIntercettati = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(5, 6, 7, 15, 16)));
+        generaGiocatePariDispari(numeriIntercettati, 5, pl(7, 8));
+        salvaFrequenze();
+    }
+
+
+    private void beep(int val) throws LineUnavailableException {
+        float sampleRate = 2000.0F;
+        byte[] buf = new byte[1];
+        AudioFormat af = new AudioFormat(sampleRate, 8, 1, true, false);
+        SourceDataLine line = AudioSystem.getSourceDataLine(af);
+        line.open(af);
+        line.start();
+        for (int i = 0; i < 1000; i++) {
+            double angle = i * 2.0 * Math.PI * 640.0 / sampleRate;
+            buf[0] = (byte) (Math.sin(angle) * val);
+            line.write(buf, 0, 1);
+        }
+        line.drain();
+        line.close();
+    }
+
+
+    public PList<Integer> getFrequenzePuntuali(PList<Integer> frequenzeEstrattePrecedenti, PList<Integer> posizioni) {
+        PList<Integer> frequenzePuntuali = pl();
+        for (int i = 0; i < frequenzeEstrattePrecedenti.size(); i++) {
+            if (posizioni.contains(i + 1)) frequenzePuntuali.add(frequenzeEstrattePrecedenti.get(i));
+        }
+        return frequenzePuntuali;
+    }
+
+    private Integer scegliNumeroCasuale(PList<Integer> numeri) {
+        Integer max = numeri.size() - 1;
+        return numeri.get(generaNumeroCasuale(0, max));
+    }
+
+    private void generaGiocatePariDispari(PList<Integer> numeriIntercettati, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
+        for (int i = 1; i <= quanteGiocate; i++) {
+            PList<Integer> sf = p.prob50() ? pari(numeriIntercettati) : dispari(numeriIntercettati);
+            giocateMultiple.add(generaGiocataDa(sf, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+        }
+    }
+
+    private void generaGiocate(PList<Integer> numeriIntercettati, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
+        for (int i = 1; i <= quanteGiocate; i++) {
+            giocateMultiple.add(generaGiocataDa(numeriIntercettati, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+        }
+    }
+
+    private PList<Integer> beccatiSottoFrequenze(PList<Frequenza> fre, Integer minFreq, Integer maxFreq) throws Exception {
+        PList<Integer> sottoFrequenze = fre.between("freq", minFreq, maxFreq).find().narrow("numero");
+        log("Quanti numeri sviluppati per le sottofrequenze: [", minFreq, ",", maxFreq, "] ", sottoFrequenze.size(), " [", pari(sottoFrequenze).size(), " pari e ", dispari(sottoFrequenze).size(), " dispari ]", sottoFrequenze.sort().concatenaDash());
+        PList<Integer> beccati = estrazioni.getFirstElement().getEstrazione().intersection(sottoFrequenze);
+        log("Beccati ", beccati.size(), " numeri ", beccati.concatenaDash(), "  dalle sottofrequenze");
+        log("Beccati ", pari(beccati).size(), " pari ", pari(beccati).concatenaDash(), "  dalle sottofrequenze");
+        log("Beccati ", dispari(beccati).size(), " dispari ", dispari(beccati).concatenaDash(), "  dalle sottofrequenze");
+        return sottoFrequenze;
+    }
+
+    private PList<Integer> beccatiFrequenzePuntuali(PList<Frequenza> fre, PList<Integer> frequenze) throws Exception {
+        PList<Integer> sottoFrequenze = fre.in("freq", frequenze).find().narrow("numero");
+        log("Quanti numeri sviluppati per le frequenze puntuali: [", frequenze.concatenaDash(), "] ", sottoFrequenze.size(), " [", pari(sottoFrequenze).size(), " pari e ", dispari(sottoFrequenze).size(), " dispari ]", sottoFrequenze.sort().concatenaDash());
+        PList<Integer> beccati = estrazioni.getFirstElement().getEstrazione().intersection(sottoFrequenze);
+        log("Beccati ", beccati.size(), " numeri ", beccati.concatenaDash(), "  dalle sottofrequenze");
+        log("Beccati ", pari(beccati).size(), " pari ", pari(beccati).concatenaDash(), "  dalle sottofrequenze");
+        log("Beccati ", dispari(beccati).size(), " dispari ", dispari(beccati).concatenaDash(), "  dalle sottofrequenze");
+        return sottoFrequenze;
+    }
+
+    private PList<Integer> pari(PList<Integer> l) {
+        PList<Integer> pari = pl();
+        l.forEach(i -> {
+            if (i % 2 == 0) pari.add(i);
+        });
+        return pari;
+    }
+
+
+    private PList<Integer> dispari(PList<Integer> l) {
+        PList<Integer> dispari = pl();
+        l.forEach(i -> {
+            if (i % 2 != 0) dispari.add(i);
+        });
+        return dispari;
+    }
+
+    private PList<Integer> generaGiocataDa(PList<Integer> lista, Integer quantiNumeri) {
+        if (lista.size() < quantiNumeri) quantiNumeri = lista.size();
         PList<Integer> giocata = pl();
-        for (int i = 1; i <= 8; i++) {
-
-            int pos = generaNumeroCasuale(0, numeriFrequenzeBasse.size() - 1);
-            int num = numeriFrequenzeBasse.get(pos);
+        for (int i = 1; i <= quantiNumeri; i++) {
+            int pos = generaNumeroCasuale(0, lista.size() - 1);
+            int num = lista.get(pos);
             if (giocata.contains(num)) {
                 i--;
                 continue;
             }
-            giocata.add(numeriFrequenzeBasse.get(pos));
+            giocata.add(lista.get(pos));
         }
-        log("GIOCATA", giocata.concatenaDash());*/
-        salvaFrequenze();
+        return giocata.sort();
     }
 
     private void loadGiocate() {
         if (oro && doppioOro) oro = false;
         String sep = " ";
         for (String l : safe(readFile("giocate.txt"))) {
+            sep = " ";
             if (l.indexOf(tab()) > -1) {
                 sep = tab();
+            }
+            if (l.indexOf("-") > -1) {
+                sep = "-";
+            }
+            if (l.indexOf(",") > -1) {
+                sep = ",";
             }
             giocateMultiple.add(split(l, sep).toListInteger());
         }
@@ -152,7 +307,9 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private Integer calcolaVincita(Estrazione5Minuti estr) throws Exception {
-        Vincita v = vincite.get(estr.getGiocata().size()).eq("trovati", estr.getQuantiTrovati()).findOne();
+        PList<Vincita> vv = vincite.get(safe(estr.getGiocata()).size());
+        if (Null(vv)) return 0;
+        Vincita v = vincite.get(safe(estr.getGiocata()).size()).eq("trovati", estr.getQuantiTrovati()).findOne();
         Integer quota = v.getQuota();
         if (estr.presoOro())
             quota = v.getQuotaOro();
@@ -211,6 +368,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void loadEstrazioni() {
+        estrazioni = pl();
         PList<String> cont = readFile(FILE);
         cont = pl(cont.subList(3, cont.size() - 3));
         for (String item : cont) {
@@ -223,11 +381,16 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void execute() throws Exception {
-        //PList<Integer> giocataFrequenti=calcolaFrequenze(80,88);
-        //log("GIOCATI NUMERI:",giocataFrequenti.concatenaDash());
-        //giocata=getGiocataFibonacci(8);
+        boolean almenoUnaGiocata = false;
         for (PList<Integer> giocata : giocateMultiple) {
-            log("GIOCATI NUMERI:", giocata.concatenaDash());
+            if (notNull(giocata)) {
+                almenoUnaGiocata = true;
+                log("GIOCATI NUMERI:", giocata.concatenaDash());
+            }
+        }
+        if (!almenoUnaGiocata) {
+            log("---------Nessuna schedina giocata da verificare!---------");
+            return;
         }
         Integer oriPresi = 0;
         Integer doppioOriPresi = 0;
@@ -256,18 +419,27 @@ public class Lotto5Minuti extends PilotSupport {
             if (e.getVincita() > 0)
                 log(e);
         }
+        String output = str(estrazioni.getFirstElement().getDataString(), "   ");
         log(getTitle("REPORT FINALE", 80, "*"));
         //  log("Max Trovati", estrazioni.max("maxTrovati"));
         // log("Max Trovati Extra", estrazioni.max("maxTrovatiExtra"));
         Integer vincitaTotale = estrazioni.sommatoria("vincita", Integer.class);
         Integer spesaTotale = estrazioni.sommatoria("spesaTotale", Integer.class);
-
+        vincitaFinale += vincitaTotale;
+        spesaFinale += spesaTotale;
+        bilancioFinale = vincitaFinale - spesaFinale;
+        output = str(output, "VINCITA: ", money(bd(vincitaTotale)), tab(), "SPESA: ", money(bd(spesaTotale)), tab(), "BILANCIO:", money(bd(vincitaTotale - spesaTotale)));
+        appendFile(REPORT, pl(output));
         log(str(lf(), tabn(5), "VINCITA TOTALE:", money(bd(vincitaTotale)), lf(), tabn(5), "SPESA TOTALE:", money(bd(spesaTotale)), lf(), tabn(5), "BILANCIO:", money(bd(vincitaTotale - spesaTotale))));
         if (almenoUna(oro, doppioOro))
             log(str(lf(), tabn(5), "ORO preso:", oriPresi, " volte"));
         if (doppioOro)
             log(str(lf(), tabn(5), "DOPPIO ORO preso:", doppioOriPresi, " volte"));
         log("-------------- VINCENTI ", vincite, "/", estrazioni.size(), "   ", percentuale(bd(vincite), bd(estrazioni.size())), "%");
+        int bilancio = vincitaTotale - spesaTotale;
+        if (bilancio > 50 && bilancio <= 100) beep(97);
+        if (bilancio > 100) beep(300);
+        log("BILANCIO COMPLESSIVO", "   VINTI: ", money(bd(vincitaFinale)), "  SPESI: ", money(bd(spesaFinale)), "   BILANCIO:", money(bd(bilancioFinale)));
     }
 
     private PList<PList<Integer>> getEstrazioniFibonacci() {
