@@ -17,6 +17,10 @@ public class Estrazione5Minuti extends PilotSupport {
     private Integer doppioOro;
     private PList<Integer> giocata = pl();
     private Integer vincita = 0;
+
+    private Integer vincitaNormale = 0;
+
+    private Integer vincitaExtra = 0;
     private Integer spesa = 1;
 
     private Integer spesaTotale = 0;
@@ -114,7 +118,8 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovati() {
         Integer tr = getQuantiTrovati();
-        msgTrovati += str(tr, "/", safe(getGiocata()).size(), "  ");
+        msgTrovati += str(tr, "/", safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + "]  " : "  ");
+
     }
 
     public void impostaTrovati() {
@@ -128,7 +133,7 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovatiExtra() {
         Integer tr = getQuantiTrovatiExtra();
-        msgTrovatiExtra += str(tr, "/", safe(getGiocata()).size(), "  ");
+        msgTrovatiExtra += str(tr, "/", safe(getGiocata()).size(), getVincitaExtra() > 0 ? " [" + money(bd(getVincitaExtra())) + "]  " : "  ");
     }
 
 
@@ -293,5 +298,21 @@ public class Estrazione5Minuti extends PilotSupport {
 
         }
         return consecutivi;
+    }
+
+    public Integer getVincitaNormale() {
+        return vincitaNormale;
+    }
+
+    public void setVincitaNormale(Integer vincitaNormale) {
+        this.vincitaNormale = vincitaNormale;
+    }
+
+    public Integer getVincitaExtra() {
+        return vincitaExtra;
+    }
+
+    public void setVincitaExtra(Integer vincitaExtra) {
+        this.vincitaExtra = vincitaExtra;
     }
 }

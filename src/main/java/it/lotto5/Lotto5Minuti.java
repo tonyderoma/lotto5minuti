@@ -57,8 +57,8 @@ public class Lotto5Minuti extends PilotSupport {
     public static void main(String[] args) throws Exception {
         Lotto5Minuti l = new Lotto5Minuti();
         BasicConfigurator.configure();
-        //l.autorun();
-        l.run();
+        l.autorun();
+        //l.run();
     }
 
     private void run() throws Exception {
@@ -73,8 +73,8 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void autorun() throws Exception {
-        Integer oraStop = 24;
-        Integer minutiStop = 0;
+        Integer oraStop = 23;
+        Integer minutiStop = 59;
         vincitaFinale = 0;
         spesaFinale = 0;
         bilancioFinale = 0;
@@ -88,6 +88,7 @@ public class Lotto5Minuti extends PilotSupport {
                 frequenze = new HashMap<>();
                 giocateMultiple = pl();
                 giocata = pl();
+                loadGiocate();
                 Thread.sleep(60000);
             }
         }
@@ -246,10 +247,10 @@ public class Lotto5Minuti extends PilotSupport {
             if (l.indexOf(tab()) > -1) {
                 sep = tab();
             }
-            if (l.indexOf("-") > -1) {
+            if (l.indexOf(dash()) > -1) {
                 sep = "-";
             }
-            if (l.indexOf(",") > -1) {
+            if (l.indexOf(comma()) > -1) {
                 sep = ",";
             }
             giocateMultiple.add(split(l, sep).toListInteger());
@@ -315,9 +316,11 @@ public class Lotto5Minuti extends PilotSupport {
             quota = v.getQuotaOro();
         if (estr.presoDoppioOro())
             quota = v.getQuotaDoppioOro();
+        estr.setVincitaNormale(quota);
         if (estr.isGiocataExtra()) {
             v = vincite.get(estr.getGiocata().size()).eq("trovati", estr.getQuantiTrovatiExtra()).findOne();
             quota += v.getQuotaExtra();
+            estr.setVincitaExtra(v.getQuotaExtra());
         }
         return quota;
     }
