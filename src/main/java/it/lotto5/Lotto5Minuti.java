@@ -199,7 +199,7 @@ public class Lotto5Minuti extends PilotSupport {
 
     private PList<Integer> beccatiFrequenzePuntuali(PList<Frequenza> fre, PList<Integer> frequenze) throws Exception {
         PList<Integer> sottoFrequenze = fre.in("freq", frequenze).find().narrow("numero");
-        log("Quanti numeri sviluppati per le frequenze puntuali: [", frequenze.concatenaDash(), "] ", sottoFrequenze.size(), " [", pari(sottoFrequenze).size(), " pari e ", dispari(sottoFrequenze).size(), " dispari ]", sottoFrequenze.sort().concatenaDash());
+        log("Quanti numeri sviluppati per le frequenze puntuali: [", frequenze.distinct().concatenaDash(), "] ", sottoFrequenze.size(), " [", pari(sottoFrequenze).size(), " pari e ", dispari(sottoFrequenze).size(), " dispari ]", sottoFrequenze.sort().concatenaDash());
         PList<Integer> beccati = estrazioni.getFirstElement().getEstrazione().intersection(sottoFrequenze);
         log("Beccati ", beccati.size(), " numeri ", beccati.concatenaDash(), "  dalle sottofrequenze");
         log("Beccati ", pari(beccati).size(), " pari ", pari(beccati).concatenaDash(), "  dalle sottofrequenze");
