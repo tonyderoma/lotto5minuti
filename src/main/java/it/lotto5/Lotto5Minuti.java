@@ -73,8 +73,8 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void autorun() throws Exception {
-        Integer oraStop = 23;
-        Integer minutiStop = 59;
+        Integer oraStop = 24;
+        Integer minutiStop = 00;
         vincitaFinale = 0;
         spesaFinale = 0;
         bilancioFinale = 0;
@@ -128,18 +128,20 @@ public class Lotto5Minuti extends PilotSupport {
         log("MIN FREQ:", fre.min("freq"), "   MAX FREQ:", fre.max("freq"));
         Integer low = frequenzeEstrattePrecedenti.get(posizioneMedia - 2);
         Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 2);
-        PList<Integer> numeriIntercettati = beccatiSottoFrequenze(fre, low, high);
-        generaGiocatePariDispari(numeriIntercettati, 5, pl(3, 4, 5, 6));
+        PList<Integer> numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
+        generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
+        //generaGiocatePariDispariDinamiche(numeriSottofrequenze, 5);
         low = frequenzeEstrattePrecedenti.get(1);
         high = frequenzeEstrattePrecedenti.get(6);
-        numeriIntercettati = beccatiSottoFrequenze(fre, low, high);
-        generaGiocatePariDispari(numeriIntercettati, 5, pl(3, 4, 5, 6));
+        numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
+        generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
+        //generaGiocatePariDispariDinamiche(numeriSottofrequenze, 5);
         low = frequenzeEstrattePrecedenti.get(13);
         high = frequenzeEstrattePrecedenti.get(18);
-        numeriIntercettati = beccatiSottoFrequenze(fre, low, high);
-        generaGiocatePariDispari(numeriIntercettati, 5, pl(7, 8));
-        numeriIntercettati = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(5, 6, 7, 15, 16)));
-        generaGiocatePariDispari(numeriIntercettati, 5, pl(7, 8));
+        numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
+        generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
+        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(6, 7, 16)));
+        generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
         salvaFrequenze();
     }
 
@@ -169,21 +171,38 @@ public class Lotto5Minuti extends PilotSupport {
         return frequenzePuntuali;
     }
 
+
     private Integer scegliNumeroCasuale(PList<Integer> numeri) {
         Integer max = numeri.size() - 1;
         return numeri.get(generaNumeroCasuale(0, max));
     }
 
-    private void generaGiocatePariDispari(PList<Integer> numeriIntercettati, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
+    private void generaGiocatePariDispari(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
         for (int i = 1; i <= quanteGiocate; i++) {
-            PList<Integer> sf = p.prob50() ? pari(numeriIntercettati) : dispari(numeriIntercettati);
+            PList<Integer> sf = p.prob50() ? pari(numeriSottofrequenze) : dispari(numeriSottofrequenze);
+            if (sf.size() < 3) continue;
             giocateMultiple.add(generaGiocataDa(sf, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
         }
+        generaGiocatePariDispariDinamiche(numeriSottofrequenze);
     }
 
-    private void generaGiocate(PList<Integer> numeriIntercettati, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
+
+    private void generaGiocatePariDispariDinamiche(PList<Integer> numeri) {
+        PList<Integer> pari = pari(numeri);
+        PList<Integer> dispari = dispari(numeri);
+        if (pari.size() <= 8) {
+            giocateMultiple.add(pari);
+        }
+        if (dispari.size() <= 8) {
+            giocateMultiple.add(dispari);
+        }
+
+    }
+
+
+    private void generaGiocate(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
         for (int i = 1; i <= quanteGiocate; i++) {
-            giocateMultiple.add(generaGiocataDa(numeriIntercettati, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+            giocateMultiple.add(generaGiocataDa(numeriSottofrequenze, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
         }
     }
 

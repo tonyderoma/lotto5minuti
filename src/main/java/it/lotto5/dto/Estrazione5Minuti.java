@@ -118,7 +118,7 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovati() {
         Integer tr = getQuantiTrovati();
-        msgTrovati += str(tr, "/", safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + "]  " : "  ");
+        msgTrovati += str(tr, "/", safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
 
     }
 
@@ -133,7 +133,7 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovatiExtra() {
         Integer tr = getQuantiTrovatiExtra();
-        msgTrovatiExtra += str(tr, "/", safe(getGiocata()).size(), getVincitaExtra() > 0 ? " [" + money(bd(getVincitaExtra())) + "]  " : "  ");
+        msgTrovatiExtra += str(tr, "/", safe(getGiocata()).size(), getVincitaExtra() > 0 ? " [" + money(bd(getVincitaExtra())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
     }
 
 
