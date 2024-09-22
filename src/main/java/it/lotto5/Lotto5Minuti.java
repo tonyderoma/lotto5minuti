@@ -174,7 +174,9 @@ public class Lotto5Minuti extends PilotSupport {
         numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
         numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(6, 7, 16)));
-        generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
+        generaGiocatePariDispari(numeriSottofrequenze, 3, pl(3, 4, 5));
+        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(2, 17)));
+        generaGiocatePariDispari(numeriSottofrequenze, 3, pl(3, 4, 5));
         // generaGiocatePariDispari(numeriFrequenzeBasse, 5, pl(3, 4, 5));
         salvaFrequenze();
     }
@@ -232,10 +234,11 @@ public class Lotto5Minuti extends PilotSupport {
     private void generaGiocatePariDispariDinamiche(PList<Integer> numeri) {
         PList<Integer> pari = pari(numeri);
         PList<Integer> dispari = dispari(numeri);
-        if (pari.size() <= 8) {
+
+        if (pari.size() <= 8 && pari.size() >= 3) {
             giocateMultiple.add(pari);
         }
-        if (dispari.size() <= 8) {
+        if (dispari.size() <= 8 && dispari.size() >= 3) {
             giocateMultiple.add(dispari);
         }
 
@@ -253,7 +256,7 @@ public class Lotto5Minuti extends PilotSupport {
       /*  if (estrazioni.size() > 1) {
             sottoFrequenze = sottoFrequenze.sottraiList(estrazioni.get(1).getEstrazione());
         }*/
-        log("Quanti numeri sviluppati per le sottofrequenze: [", minFreq, ",", maxFreq, quadraClose(), sottoFrequenze.size(), quadraClose(), pari(sottoFrequenze).size(), " pari e ", dispari(sottoFrequenze).size(), " dispari ]", sottoFrequenze.sort().concatenaDash());
+        log("Quanti numeri sviluppati per le sottofrequenze: [", minFreq, comma(), maxFreq, quadraClose(), sottoFrequenze.size(), quadra(), pari(sottoFrequenze).size(), " pari e ", dispari(sottoFrequenze).size(), " dispari ]", sottoFrequenze.sort().concatenaDash());
         PList<Integer> beccati = estrazioni.getFirstElement().getEstrazione().intersection(sottoFrequenze);
         log("Beccati ", beccati.size(), " numeri ", beccati.concatenaDash(), "  dalle sottofrequenze");
         log("Beccati ", pari(beccati).size(), " pari ", pari(beccati).concatenaDash(), "  dalle sottofrequenze");
