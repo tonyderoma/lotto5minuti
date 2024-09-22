@@ -174,9 +174,7 @@ public class Lotto5Minuti extends PilotSupport {
         numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
         numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(6, 7, 16)));
-        generaGiocatePariDispari(numeriSottofrequenze, 3, pl(3, 4, 5));
-        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(2, 17)));
-        generaGiocatePariDispari(numeriSottofrequenze, 3, pl(3, 4, 5));
+        generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
         // generaGiocatePariDispari(numeriFrequenzeBasse, 5, pl(3, 4, 5));
         salvaFrequenze();
     }
@@ -329,7 +327,7 @@ public class Lotto5Minuti extends PilotSupport {
             giocateMultiple.add(giocata);
     }
 
-    private static List<Integer> generaGiocata(Integer lunghezza, Integer min, Integer max) {
+    private List<Integer> generaGiocata(Integer lunghezza, Integer min, Integer max) {
         List<Integer> giocata = new ArrayList<>();
         for (int i = 1; i <= lunghezza; i++) {
             Integer numero = generaNumeroCasuale(min, max);
@@ -342,10 +340,6 @@ public class Lotto5Minuti extends PilotSupport {
         return giocata;
     }
 
-    private static Integer generaNumeroCasuale(Integer min, Integer max) {
-        Integer d = Double.valueOf(Math.floor(Math.random() * (max - min + 1)) + min).intValue();
-        return d;
-    }
 
     private void init() {
         PList<Vincita> uno = pl(new Vincita(0, 0), new Vincita(1, 3, 63, 0, 4));
