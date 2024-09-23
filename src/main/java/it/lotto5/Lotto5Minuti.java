@@ -173,8 +173,8 @@ public class Lotto5Minuti extends PilotSupport {
         log("Frequenze estratte attuali   ", frequenzeEstratte.concatenaDash());
 
         log("INTERVALLO DI FREQUENZE:  ", quadra(), fre.min("freq").getFreq(), comma(), fre.max("freq").getFreq(), quadraClose());
-        Integer low = frequenzeEstrattePrecedenti.get(posizioneMedia - 2);
-        Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 2);
+        Integer low = frequenzeEstrattePrecedenti.get(posizioneMedia - 1);
+        Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 1);
         PList<Integer> numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
         low = frequenzeEstrattePrecedenti.get(1);
@@ -185,7 +185,7 @@ public class Lotto5Minuti extends PilotSupport {
         high = frequenzeEstrattePrecedenti.get(quanteFrequenzeDistinte - 2);
         numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
-        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(0, 3, quanteFrequenzeDistinte - 1)));
+        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(0, 4, quanteFrequenzeDistinte - 3)));
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
         // generaGiocatePariDispari(numeriFrequenzeBasse, 5, pl(3, 4, 5));
         salvaFrequenze();
@@ -232,6 +232,8 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void generaGiocatePariDispari(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
+        if (numeriSottofrequenze.size() >= 8 && numeriSottofrequenze.size() <= 10)
+            giocateMultiple.add(numeriSottofrequenze);
         PList<Integer> pari = pari(numeriSottofrequenze);
         PList<Integer> dispari = dispari(numeriSottofrequenze);
         int quantePari = quanteGiocate / 2;
@@ -244,6 +246,15 @@ public class Lotto5Minuti extends PilotSupport {
         if (dispari.size() >= 3)
             for (int i = 1; i <= quanteDispari; i++) {
                 giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+            }
+
+        if (pari.size() >= 17)
+            for (int i = 1; i <= quantePari; i++) {
+                giocateMultiple.add(generaGiocataDa(pari, scegliNumeroCasuale(pl(7, 8, 9, 10))));
+            }
+        if (dispari.size() >= 17)
+            for (int i = 1; i <= quanteDispari; i++) {
+                giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(pl(7, 8, 9, 10))));
             }
         generaGiocatePariDispariDinamiche(numeriSottofrequenze);
     }
