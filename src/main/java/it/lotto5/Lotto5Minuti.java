@@ -1,5 +1,6 @@
 package it.lotto5;
 
+import it.eng.pilot.PDate;
 import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
 import it.lotto5.dto.Estrazione5Minuti;
@@ -76,10 +77,17 @@ public class Lotto5Minuti extends PilotSupport {
     private void autorun() throws Exception {
         Integer oraStop = 24;
         Integer minutiStop = 00;
+        Integer oraStart = 03;
+        Integer minutiStart = 30;
+        PDate start = pd().ora(oraStart).minuti(minutiStart);
         vincitaFinale = 0;
         spesaFinale = 0;
         bilancioFinale = 0;
         while (true) {
+            if (pd().isBefore(start)) {
+                Thread.sleep(60000 * 5);
+                continue;
+            }
             if (pd().isAfter(pd().ora(oraStop).minuti(minutiStop))) break;
             Thread.sleep(10000);
             if (pd().getMinuti() % 5 == 0) {
@@ -129,6 +137,7 @@ public class Lotto5Minuti extends PilotSupport {
         log("Estratti", quantiNumeriEstrattiFrequenzePovere, " numeri da frequenze con meno numeri.", tab(), estrazioni.getFirstElement().getEstrazione().intersection(numeriFrequenzeBasse).sort().concatenaDash());
         return numeriFrequenzeBasse;
     }
+
 
     private void elaboraFrequenze() throws Exception {
         if (estrazioni.size() <= 1) return;
@@ -220,11 +229,19 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void generaGiocatePariDispari(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
-        for (int i = 1; i <= quanteGiocate; i++) {
-            PList<Integer> sf = p.prob50() ? pari(numeriSottofrequenze) : dispari(numeriSottofrequenze);
-            if (sf.size() < 3) continue;
-            giocateMultiple.add(generaGiocataDa(sf, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
-        }
+        PList<Integer> pari = pari(numeriSottofrequenze);
+        PList<Integer> dispari = dispari(numeriSottofrequenze);
+        int quantePari = quanteGiocate / 2;
+        if (quantePari == 0) quantePari = 1;
+        int quanteDispari = quanteGiocate - quantePari;
+        if (pari.size() >= 3)
+            for (int i = 1; i <= quantePari; i++) {
+                giocateMultiple.add(generaGiocataDa(pari, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+            }
+        if (dispari.size() >= 3)
+            for (int i = 1; i <= quanteDispari; i++) {
+                giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+            }
         generaGiocatePariDispariDinamiche(numeriSottofrequenze);
     }
 
