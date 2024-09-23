@@ -130,7 +130,7 @@ public class Lotto5Minuti extends PilotSupport {
             }
         }
         log("Frequenze con meno numeri=", freqConMenoNumeri.sort().concatenaDash());
-        PList<Integer> numeriFrequenzeBasse = fre.in("freq", freqConMenoNumeri).find().narrow("numero").distinct();
+        PList<Integer> numeriFrequenzeBasse = fre.in("freq", freqConMenoNumeri).find().narrowDistinct("numero");
         log("Numeri Frequenze Povere:", numeriFrequenzeBasse.size(), " numeri", tab(), numeriFrequenzeBasse.sort().concatenaDash());
         log("Numeri Frequenze Povere Pari:", pari(numeriFrequenzeBasse).size(), " numeri", tab(), pari(numeriFrequenzeBasse).sort().concatenaDash());
         log("Numeri Frequenze Povere Dispari:", dispari(numeriFrequenzeBasse).size(), " numeri", tab(), dispari(numeriFrequenzeBasse).sort().concatenaDash());
@@ -163,10 +163,13 @@ public class Lotto5Minuti extends PilotSupport {
         }
 
         Integer posizioneMedia = 9;
-        frequenzeEstrattePrecedenti = frequenzeEstrattePrecedenti.sort();
+        frequenzeEstrattePrecedenti = frequenzeEstrattePrecedenti.distinct().sort();
+        Integer quanteFrequenzeDistinte = frequenzeEstrattePrecedenti.size();
+        posizioneMedia = frequenzeEstrattePrecedenti.size() / 2 - 1;
         frequenzeEstratte = frequenzeEstratte.sort();
         //PList<Integer> numeriFrequenzeBasse = getNumeriFrequenzePovere(frequenzeEstratte, fre);
-        log("Frequenze estratte precedenti", frequenzeEstrattePrecedenti.concatenaDash());
+
+        log("Frequenze estratte distinte precedenti", frequenzeEstrattePrecedenti.distinct().concatenaDash());
         log("Frequenze estratte attuali   ", frequenzeEstratte.concatenaDash());
 
         log("INTERVALLO DI FREQUENZE:  ", quadra(), fre.min("freq").getFreq(), comma(), fre.max("freq").getFreq(), quadraClose());
@@ -174,15 +177,15 @@ public class Lotto5Minuti extends PilotSupport {
         Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 2);
         PList<Integer> numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
-        low = frequenzeEstrattePrecedenti.get(2);
-        high = frequenzeEstrattePrecedenti.get(7);
+        low = frequenzeEstrattePrecedenti.get(1);
+        high = frequenzeEstrattePrecedenti.get(3);
         numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
-        low = frequenzeEstrattePrecedenti.get(12);
-        high = frequenzeEstrattePrecedenti.get(17);
+        low = frequenzeEstrattePrecedenti.get(quanteFrequenzeDistinte - 5);
+        high = frequenzeEstrattePrecedenti.get(quanteFrequenzeDistinte - 2);
         numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
-        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(6, 7, 16)));
+        numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(0, 3, quanteFrequenzeDistinte - 1)));
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
         // generaGiocatePariDispari(numeriFrequenzeBasse, 5, pl(3, 4, 5));
         salvaFrequenze();
@@ -209,7 +212,7 @@ public class Lotto5Minuti extends PilotSupport {
     public PList<Integer> getFrequenzePuntuali(PList<Integer> frequenzeEstrattePrecedenti, PList<Integer> posizioni) {
         PList<Integer> frequenzePuntuali = pl();
         for (int i = 0; i < frequenzeEstrattePrecedenti.size(); i++) {
-            if (posizioni.contains(i + 1)) frequenzePuntuali.add(frequenzeEstrattePrecedenti.get(i));
+            if (posizioni.contains(i)) frequenzePuntuali.add(frequenzeEstrattePrecedenti.get(i));
         }
         return frequenzePuntuali;
     }
