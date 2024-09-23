@@ -169,12 +169,12 @@ public class Lotto5Minuti extends PilotSupport {
         frequenzeEstratte = frequenzeEstratte.sort();
         //PList<Integer> numeriFrequenzeBasse = getNumeriFrequenzePovere(frequenzeEstratte, fre);
 
-        log("Frequenze estratte distinte precedenti", frequenzeEstrattePrecedenti.distinct().concatenaDash());
+        log("Frequenze estratte distinte precedenti", frequenzeEstrattePrecedenti.sort().concatenaDash());
         log("Frequenze estratte attuali   ", frequenzeEstratte.concatenaDash());
 
         log("INTERVALLO DI FREQUENZE:  ", quadra(), fre.min("freq").getFreq(), comma(), fre.max("freq").getFreq(), quadraClose());
         Integer low = frequenzeEstrattePrecedenti.get(posizioneMedia - 1);
-        Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 1);
+        Integer high = frequenzeEstrattePrecedenti.get(posizioneMedia + 2);
         PList<Integer> numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5, 6));
         low = frequenzeEstrattePrecedenti.get(1);
@@ -248,11 +248,11 @@ public class Lotto5Minuti extends PilotSupport {
                 giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
             }
 
-        if (pari.size() >= 17)
+        if (pari.size() >= 15)
             for (int i = 1; i <= quantePari; i++) {
                 giocateMultiple.add(generaGiocataDa(pari, scegliNumeroCasuale(pl(7, 8, 9, 10))));
             }
-        if (dispari.size() >= 17)
+        if (dispari.size() >= 15)
             for (int i = 1; i <= quanteDispari; i++) {
                 giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(pl(7, 8, 9, 10))));
             }
@@ -483,7 +483,7 @@ public class Lotto5Minuti extends PilotSupport {
         for (PList<Integer> giocata : giocateMultiple) {
             if (notNull(giocata)) {
                 almenoUnaGiocata = true;
-                log("GIOCATI NUMERI:", giocata.concatenaDash());
+                log("GIOCATI ", giocata.size(), " NUMERI:", giocata.concatenaDash());
             }
         }
         if (!almenoUnaGiocata) {
@@ -537,7 +537,7 @@ public class Lotto5Minuti extends PilotSupport {
         int bilancio = vincitaTotale - spesaTotale;
         if (bilancio > 50 && bilancio <= 100) beep(97);
         if (bilancio > 100) beep(300);
-        log("BILANCIO COMPLESSIVO", "   VINTI: ", money(bd(vincitaFinale)), "  SPESI: ", money(bd(spesaFinale)), "   BILANCIO:", money(bd(bilancioFinale)));
+        log("BILANCIO COMPLESSIVO ", estrazioni.getFirstElement().getDataString(), "   VINTI: ", money(bd(vincitaFinale)), "  SPESI: ", money(bd(spesaFinale)), "   BILANCIO:", money(bd(bilancioFinale)));
     }
 
     private PList<PList<Integer>> getEstrazioniFibonacci() {

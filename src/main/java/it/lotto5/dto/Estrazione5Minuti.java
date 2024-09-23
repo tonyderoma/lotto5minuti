@@ -42,27 +42,24 @@ public class Estrazione5Minuti extends PilotSupport {
         setOro(getInteger(oro));
         String doppioOro = listaOri.get(1);
         setDoppioOro(getInteger(doppioOro));
-        PList<Integer> extra = split(listaOri.getLastElement(), ".").toListInteger();
+        PList<Integer> extra = split(listaOri.getLastElement(), dot()).toListInteger();
         setExtra(extra);
         PList<String> elems = split(row, tab());
-        PList<String> data = split(elems.getFirstElement(), "/");
+        PList<String> data = split(elems.getFirstElement(), slash());
         String d = data.getFirstElement();
-        d = d.replace("-", "/");
-        PList<String> last = split(data.getLastElement(), " ");
+        d = d.replace(dash(), slash());
+        PList<String> last = split(data.getLastElement(), space());
         setNumero(getInteger(last.getFirstElement()));
-        String ora = last.getLastElement().replace(".", ":");
-        PList<String> dataElems = split(d, "/");
-        String ita = strSep("/", dataElems.get(2), dataElems.get(1), dataElems.get(0));
-        d = str(ita, " ", ora, ":00");
+        String ora = last.getLastElement().replace(dot(), colon());
+        PList<String> dataElems = split(d, slash());
+        String ita = strSep(slash(), dataElems.get(2), dataElems.get(1), dataElems.get(0));
+        d = str(ita, space(), ora, ":00");
         setData(pd(d));
         setEstrazione(split(nums, tab()).toListInteger());
-        msgOro += getOro() + ":";
-        msgDoppioOro += getDoppioOro() + ":";
+        msgOro += str(getOro(), colon());
+        msgDoppioOro += str(getDoppioOro(), colon());
     }
 
-    public int getNumero() {
-        return numero;
-    }
 
     public void setNumero(int numero) {
         this.numero = numero;
@@ -118,7 +115,7 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovati() {
         Integer tr = getQuantiTrovati();
-        msgTrovati += str(tr, "/", safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
+        msgTrovati += str(tr, slash(), safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
 
     }
 
@@ -133,16 +130,16 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private void addTrovatiExtra() {
         Integer tr = getQuantiTrovatiExtra();
-        msgTrovatiExtra += str(tr, "/", safe(getGiocata()).size(), getVincitaExtra() > 0 ? " [" + money(bd(getVincitaExtra())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
+        msgTrovatiExtra += str(tr, slash(), safe(getGiocata()).size(), getVincitaExtra() > 0 ? " [" + money(bd(getVincitaExtra())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
     }
 
 
     private void addMessaggioOro() {
-        msgOro += str(sn(presoOro()), " ");
+        msgOro += str(sn(presoOro()), space());
     }
 
     private void addMessaggioDoppioOro() {
-        msgDoppioOro += str(sn(presoDoppioOro()), " ");
+        msgDoppioOro += str(sn(presoDoppioOro()), space());
     }
 
     public void impostaMsgOri() {
@@ -272,7 +269,7 @@ public class Estrazione5Minuti extends PilotSupport {
                 }
             }
             if (sottoEstrazione.size() >= almeno) {
-                cad = str(cad, getDataString(), "   Cadenza: ", i, ":", sottoEstrazione.concatenaDash(), lf());
+                cad = str(cad, getDataString(), "   Cadenza: ", i, ":   ", sottoEstrazione.concatenaDash(), lf());
             }
         }
         return cad;
