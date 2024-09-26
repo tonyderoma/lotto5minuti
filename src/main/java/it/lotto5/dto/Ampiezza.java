@@ -3,12 +3,12 @@ package it.lotto5.dto;
 public class Ampiezza {
 
     private Integer freq;
-    private Integer quantiNumeri;
+    private Integer ampiezza;
 
 
-    public Ampiezza(Integer freq, Integer numeri) {
+    public Ampiezza(Integer freq, Integer ampiezza) {
         this.freq = freq;
-        this.quantiNumeri = numeri;
+        this.ampiezza = ampiezza;
     }
 
     public Integer getFreq() {
@@ -19,15 +19,15 @@ public class Ampiezza {
         this.freq = freq;
     }
 
-    public Integer getQuantiNumeri() {
-        return quantiNumeri;
+    public Integer getAmpiezza() {
+        return ampiezza;
     }
 
-    public void setQuantiNumeri(Integer quantiNumeri) {
-        this.quantiNumeri = quantiNumeri;
+    public void setAmpiezza(Integer ampiezza) {
+        this.ampiezza = ampiezza;
     }
 
     public String toString() {
-        return "Frequenza " + getFreq() + "-->" + getQuantiNumeri() + " numeri";
+        return "Frequenza " + getFreq() + "-->" + getAmpiezza() + " numeri";
     }
 }

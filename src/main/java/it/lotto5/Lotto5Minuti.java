@@ -178,24 +178,17 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> numeriFrequenzeBasse = getNumeriFrequenzePovere(frequenzeEstratte, fre);
 
         log("Frequenze estratte distinte precedenti", frequenzeEstrattePrecedenti.sort().concatenaDash());
-        log("Frequenze estratte attuali   ", frequenzeEstratte.concatenaDash());
-        PList<Integer> freqEstratteDistinte = frequenzeEstratte.distinct();
-        String ampiezzeEstratte = "";
-        for (Integer freq : freqEstratteDistinte.sort()) {
-            if (freq != 0)
-                ampiezzeEstratte += str(freq, " -> amp:", ampiezze.eq("freq", freq).findOne().getQuantiNumeri(), space(), dash(), space());
-        }
-        log("Ampiezza frequenze estratte:", ampiezzeEstratte);
-
+        log("Frequenze estratte attuali   ", frequenzeEstratte.sort().concatenaDash());
+        log("Ampiezze frequenze estratte:", ampiezze.in("freq", frequenzeEstratte.distinct()).find().sort("ampiezza").narrow("ampiezza").concatenaDash());
         log("INTERVALLO DI FREQUENZE:  ", quadra(), fre.min("freq").getFreq(), comma(), fre.max("freq").getFreq(), quadraClose());
-        PList<Integer> numeriDaAmpiezzeBasse = getNumeriDaAmpiezzeBasse(8, ampiezze, fre, frequenzeEstratte);
+        PList<Integer> numeriDaAmpiezzeBasse = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, frequenzeEstratte);
         // PList<Integer> numeriAmpiezzaTra = getNumeriAmpiezzaTra(6, 10, ampiezze, fre);
         PList<Integer> ampiezzePuntuali = pl();
-        // ampiezzePuntuali.add(3);
+        ampiezzePuntuali.add(2);
         PList<Integer> numeriDaAmpiezzePuntuali = getNumeriAmpiezzaPuntuale(ampiezze, fre, ampiezzePuntuali, frequenzeEstratte);
 
-        giocaNumeriAmpiezze(numeriDaAmpiezzeBasse, pl(3, 4, 5, 6, 7), 3);
-        giocaNumeriAmpiezze(numeriDaAmpiezzePuntuali, pl(3, 4, 5, 6, 7), 3);
+        giocaNumeriAmpiezze(numeriDaAmpiezzeBasse, pl(3, 4, 5, 6), 3);
+        giocaNumeriAmpiezze(numeriDaAmpiezzePuntuali, pl(7, 8, 9), 3);
 
 
         /*
@@ -232,8 +225,8 @@ public class Lotto5Minuti extends PilotSupport {
     private PList<Integer> getNumeriDaAmpiezzeBasse(Integer quantiNumeriAlMassimo, PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Integer> frequenzeEstratte) throws Exception {
         int contaNumeri = 0;
         PList<Integer> frequenzeTrovate = pl();
-        for (Ampiezza a : ampiezze.sort("quantiNumeri", "freq")) {
-            contaNumeri += a.getQuantiNumeri();
+        for (Ampiezza a : ampiezze.sort("ampiezza", "freq")) {
+            contaNumeri += a.getAmpiezza();
             if (contaNumeri > quantiNumeriAlMassimo) break;
             else {
                 if (!frequenzeTrovate.contains(a.getFreq()))
@@ -241,15 +234,15 @@ public class Lotto5Minuti extends PilotSupport {
             }
         }
 
-        log("Estratti", frequenzeEstratte.in(frequenzeTrovate).find().size(), " numeri per le frequenze  ", frequenzeTrovate.concatenaDash());
+        log("Estratti", frequenzeEstratte.in(frequenzeTrovate).find().size(), " numeri per le frequenze  ", frequenzeTrovate.concatenaDash(), " di ampiezza ", ampiezze.in("freq", frequenzeTrovate).find().narrow("ampiezza").distinct().concatenaDash());
         PList<Integer> numeriSviluppati = fre.in("freq", frequenzeTrovate).find().narrowDistinct("numero");
-        log(numeriSviluppati.size(), " numeri sviluppati messi in gioco=", numeriSviluppati.concatenaDash());
+        log(numeriSviluppati.size(), " numeri sviluppati messi in gioco=", numeriSviluppati.sort().concatenaDash());
         return numeriSviluppati;
     }
 
 
     private PList<Integer> getNumeriAmpiezzaTra(int minAmpiezza, int maxAmpiezza, PList<Ampiezza> ampiezze, PList<Frequenza> fre) throws Exception {
-        PList<Integer> frequenze = ampiezze.between("quantiNumeri", minAmpiezza, maxAmpiezza).find().narrowDistinct("freq");
+        PList<Integer> frequenze = ampiezze.between("ampiezza", minAmpiezza, maxAmpiezza).find().narrowDistinct("freq");
         PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
         log("Numeri sviluppati per ampiezza compresa tra  ", quadra(), minAmpiezza, comma(), maxAmpiezza, quadraClose(), tab(), numeri.size(), " numeri:   ", numeri.concatenaDash());
         return numeri;
@@ -257,7 +250,7 @@ public class Lotto5Minuti extends PilotSupport {
 
     private PList<Integer> getNumeriAmpiezzaPuntuale(PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Integer> amps, PList<Integer> frequenzeEstratte) throws Exception {
         if (Null(amps)) return pl();
-        PList<Integer> frequenze = ampiezze.in("quantiNumeri", amps).find().narrowDistinct("freq");
+        PList<Integer> frequenze = ampiezze.in("ampiezza", amps).find().narrowDistinct("freq");
         PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
         log("Numeri sviluppati per ampiezze puntuali ", amps.concatenaDash(), tab(), numeri.size(), " numeri:   ", numeri.concatenaDash());
         log("Estratti", frequenzeEstratte.in(frequenze).find().size(), " numeri per le frequenze di ampiezza  ", amps.concatenaDash());
@@ -609,7 +602,7 @@ public class Lotto5Minuti extends PilotSupport {
                 es.impostaMsgOri();
             }
         }
-        // estrazioni.sortDesc("quantiTrovati", "quantiTrovatiExtra");
+        // estrazioni.sortDesc("ampiezza", "quantiTrovatiExtra");
         estrazioni.sortDesc("vincita");
         Integer vincite = estrazioni.gt("vincita", 0).find().size();
         log("-------------- VINCENTI ", vincite, slash(), estrazioni.size(), "   ", percentuale(bd(vincite), bd(estrazioni.size())), "%");
@@ -711,7 +704,7 @@ public class Lotto5Minuti extends PilotSupport {
         for (Map.Entry<Integer, PList<Frequenza>> entry : mappa.entrySet()) {
             ampiezze.add(new Ampiezza(entry.getKey(), entry.getValue().size()));
         }
-        writeFile(AMPIEZZA_FREQUENZE, ampiezze.sortDesc("quantiNumeri", "freq"));
+        writeFile(AMPIEZZA_FREQUENZE, ampiezze.sortDesc("ampiezza", "freq"));
         writeFile(FREQUENZE, freqs);
     }
 
