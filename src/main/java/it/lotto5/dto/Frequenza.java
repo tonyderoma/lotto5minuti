@@ -30,7 +30,4 @@ public class Frequenza {
         return getNumero() + "-->" + getFreq();
     }
 
-    public String getFreqString() {
-        return toString();
-    }
 }

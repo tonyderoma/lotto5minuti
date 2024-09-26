@@ -3,6 +3,7 @@ package it.lotto5;
 import it.eng.pilot.PDate;
 import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
+import it.lotto5.dto.Ampiezza;
 import it.lotto5.dto.Estrazione5Minuti;
 import it.lotto5.dto.Frequenza;
 import it.lotto5.dto.Vincita;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 public class Lotto5Minuti extends PilotSupport {
     public static final String FREQUENZE = "frequenze.txt";
+    public static final String AMPIEZZA_FREQUENZE = "ampiezzaFrequenze.txt";
     public static final String REPORT = "REPORT.TXT";
     public Integer bilancioFinale = 0;
     public Integer vincitaFinale = 0;
@@ -58,8 +60,9 @@ public class Lotto5Minuti extends PilotSupport {
     public static void main(String[] args) throws Exception {
         Lotto5Minuti l = new Lotto5Minuti();
         BasicConfigurator.configure();
-        //l.autorun();1
-        l.run();
+        l.autorun();
+        //l.run();
+        //l.downloadEstrazioni(2);
     }
 
     private void run() throws Exception {
@@ -77,8 +80,8 @@ public class Lotto5Minuti extends PilotSupport {
     private void autorun() throws Exception {
         Integer oraStop = 24;
         Integer minutiStop = 00;
-        Integer oraStart = 03;
-        Integer minutiStart = 30;
+        Integer oraStart = 1;
+        Integer minutiStart = 9;
         PDate start = pd().ora(oraStart).minuti(minutiStart);
         vincitaFinale = 0;
         spesaFinale = 0;
@@ -142,6 +145,12 @@ public class Lotto5Minuti extends PilotSupport {
     private void elaboraFrequenze() throws Exception {
         if (estrazioni.size() <= 1) return;
         PList<Frequenza> fre = leggiFrequenze();
+        PList<Ampiezza> ampiezze = leggiAmpiezze();
+        if (Null(fre)) {
+            salvaFrequenze();
+            fre = leggiFrequenze();
+            ampiezze = leggiAmpiezze();
+        }
         PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
         PList<Integer> penultimaEstrazione = estrazioni.get(1).getEstrazione();
         PList<Integer> inComune = estrazioni.getFirstElement().getEstrazione().intersection(penultimaEstrazione);
@@ -170,8 +179,26 @@ public class Lotto5Minuti extends PilotSupport {
 
         log("Frequenze estratte distinte precedenti", frequenzeEstrattePrecedenti.sort().concatenaDash());
         log("Frequenze estratte attuali   ", frequenzeEstratte.concatenaDash());
+        PList<Integer> freqEstratteDistinte = frequenzeEstratte.distinct();
+        String ampiezzeEstratte = "";
+        for (Integer freq : freqEstratteDistinte.sort()) {
+            if (freq != 0)
+                ampiezzeEstratte += str(freq, " -> amp:", ampiezze.eq("freq", freq).findOne().getQuantiNumeri(), space(), dash(), space());
+        }
+        log("Ampiezza frequenze estratte:", ampiezzeEstratte);
 
         log("INTERVALLO DI FREQUENZE:  ", quadra(), fre.min("freq").getFreq(), comma(), fre.max("freq").getFreq(), quadraClose());
+        PList<Integer> numeriDaAmpiezzeBasse = getNumeriDaAmpiezzeBasse(8, ampiezze, fre, frequenzeEstratte);
+        // PList<Integer> numeriAmpiezzaTra = getNumeriAmpiezzaTra(6, 10, ampiezze, fre);
+        PList<Integer> ampiezzePuntuali = pl();
+        // ampiezzePuntuali.add(3);
+        PList<Integer> numeriDaAmpiezzePuntuali = getNumeriAmpiezzaPuntuale(ampiezze, fre, ampiezzePuntuali, frequenzeEstratte);
+
+        giocaNumeriAmpiezze(numeriDaAmpiezzeBasse, pl(3, 4, 5, 6, 7), 3);
+        giocaNumeriAmpiezze(numeriDaAmpiezzePuntuali, pl(3, 4, 5, 6, 7), 3);
+
+
+        /*
         Integer low = frequenzeEstrattePrecedenti.get(Integer.valueOf(posizioneMedia - 1));
         Integer high = frequenzeEstrattePrecedenti.get(Integer.valueOf(posizioneMedia + 2));
         PList<Integer> numeriSottofrequenze = beccatiSottoFrequenze(fre, low, high);
@@ -189,9 +216,52 @@ public class Lotto5Minuti extends PilotSupport {
         log(lfn(2));
         numeriSottofrequenze = beccatiFrequenzePuntuali(fre, getFrequenzePuntuali(frequenzeEstrattePrecedenti, pl(0, 4, quanteFrequenzeDistinte - 3)));
         generaGiocatePariDispari(numeriSottofrequenze, 5, pl(3, 4, 5));
-        log(lfn(2));
+        log(lfn(2));*/
         // generaGiocatePariDispari(numeriFrequenzeBasse, 5, pl(3, 4, 5));
         salvaFrequenze();
+    }
+
+    private void giocaNumeriAmpiezze(PList<Integer> numeriDaAmpiezze, PList<Integer> lunghezzeGiocate, int quantePerLunghezza) {
+        if (numeriDaAmpiezze.size() >= 3)
+            for (int i = 1; i <= quantePerLunghezza; i++) {
+                for (Integer quanti : lunghezzeGiocate)
+                    giocateMultiple.add(generaGiocataDa(numeriDaAmpiezze, quanti));
+            }
+    }
+
+    private PList<Integer> getNumeriDaAmpiezzeBasse(Integer quantiNumeriAlMassimo, PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Integer> frequenzeEstratte) throws Exception {
+        int contaNumeri = 0;
+        PList<Integer> frequenzeTrovate = pl();
+        for (Ampiezza a : ampiezze.sort("quantiNumeri", "freq")) {
+            contaNumeri += a.getQuantiNumeri();
+            if (contaNumeri > quantiNumeriAlMassimo) break;
+            else {
+                if (!frequenzeTrovate.contains(a.getFreq()))
+                    frequenzeTrovate.add(a.getFreq());
+            }
+        }
+
+        log("Estratti", frequenzeEstratte.in(frequenzeTrovate).find().size(), " numeri per le frequenze  ", frequenzeTrovate.concatenaDash());
+        PList<Integer> numeriSviluppati = fre.in("freq", frequenzeTrovate).find().narrowDistinct("numero");
+        log(numeriSviluppati.size(), " numeri sviluppati messi in gioco=", numeriSviluppati.concatenaDash());
+        return numeriSviluppati;
+    }
+
+
+    private PList<Integer> getNumeriAmpiezzaTra(int minAmpiezza, int maxAmpiezza, PList<Ampiezza> ampiezze, PList<Frequenza> fre) throws Exception {
+        PList<Integer> frequenze = ampiezze.between("quantiNumeri", minAmpiezza, maxAmpiezza).find().narrowDistinct("freq");
+        PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
+        log("Numeri sviluppati per ampiezza compresa tra  ", quadra(), minAmpiezza, comma(), maxAmpiezza, quadraClose(), tab(), numeri.size(), " numeri:   ", numeri.concatenaDash());
+        return numeri;
+    }
+
+    private PList<Integer> getNumeriAmpiezzaPuntuale(PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Integer> amps, PList<Integer> frequenzeEstratte) throws Exception {
+        if (Null(amps)) return pl();
+        PList<Integer> frequenze = ampiezze.in("quantiNumeri", amps).find().narrowDistinct("freq");
+        PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
+        log("Numeri sviluppati per ampiezze puntuali ", amps.concatenaDash(), tab(), numeri.size(), " numeri:   ", numeri.concatenaDash());
+        log("Estratti", frequenzeEstratte.in(frequenze).find().size(), " numeri per le frequenze di ampiezza  ", amps.concatenaDash());
+        return numeri;
     }
 
 
@@ -235,10 +305,17 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void generaGiocatePariDispari(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
-        if (numeriSottofrequenze.size() >= 8 && numeriSottofrequenze.size() <= 10)
+        if (numeriSottofrequenze.size() >= 7 && numeriSottofrequenze.size() <= 10)
             giocateMultiple.add(numeriSottofrequenze);
         PList<Integer> pari = pari(numeriSottofrequenze);
         PList<Integer> dispari = dispari(numeriSottofrequenze);
+
+        if (pari.size() >= 8 && pari.size() <= 10)
+            giocateMultiple.add(pari);
+        if (dispari.size() >= 8 && dispari.size() <= 10)
+            giocateMultiple.add(dispari);
+
+
         int quantePari = quanteGiocate / 2;
         if (quantePari == 0) quantePari = 1;
         int quanteDispari = quanteGiocate - quantePari;
@@ -424,28 +501,22 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
+    private void downloadEstrazioni(Integer quantiGiorniFa) throws Exception {
+        PDate da = pd().giorniFa(quantiGiorniFa);
+        PDate finoA = pd().ieri();
+        for (PDate d = da; d.isNotAfter(finoA); d = d.domani()) {
+            download(d);
+        }
+    }
+
     private void download() throws Exception {
-        System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.3");
         String giorno = Null(giornoDaScaricare) ? pd().toStringFormat("yyyy-MM-dd") : giornoDaScaricare;
         String fileURL = str(URL, giorno);
-
-/*
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        KeyStore ts = KeyStore.getInstance(KeyStore.getDefaultType());
-        ts.load(new FileInputStream("C:/testi5/lotto5"), "anto71ok".toCharArray());
-        tmf.init(ts);
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, tmf.getTrustManagers(), null);
-        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-*/
         URL url = new URL(fileURL);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setRequestProperty("User-Agent",
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
-
         int responseCode = httpConn.getResponseCode();
-
-        // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
 
             // opens input stream from the HTTP connection
@@ -454,6 +525,32 @@ public class Lotto5Minuti extends PilotSupport {
             // opens an output stream to save into file
             FileOutputStream outputStream = new FileOutputStream(FILE);
 
+            int bytesRead = -1;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.close();
+            inputStream.close();
+            System.out.println("File downloaded");
+        } else {
+            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+        }
+        httpConn.disconnect();
+    }
+
+
+    private void download(PDate giorno) throws Exception {
+        URL url = new URL(str(URL, giorno.toStringFormat("yyyy-MM-dd")));
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.setRequestProperty("User-Agent",
+                "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
+        int responseCode = httpConn.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            // opens input stream from the HTTP connection
+            InputStream inputStream = httpConn.getInputStream();
+            // opens an output stream to save into file
+            FileOutputStream outputStream = new FileOutputStream(str("estrazioni/", giorno.toStringFormat("dd-MM-YYYY"), dot(), "txt"));
             int bytesRead = -1;
             byte[] buffer = new byte[BUFFER_SIZE];
             while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -608,8 +705,14 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void salvaFrequenze() throws Exception {
-        PList<String> cont = calcolaFrequenze().narrow("freqString");
-        writeFile(FREQUENZE, cont);
+        PList<Frequenza> freqs = calcolaFrequenze();
+        PList<Ampiezza> ampiezze = pl();
+        Map<Integer, PList<Frequenza>> mappa = freqs.groupBy("freq");
+        for (Map.Entry<Integer, PList<Frequenza>> entry : mappa.entrySet()) {
+            ampiezze.add(new Ampiezza(entry.getKey(), entry.getValue().size()));
+        }
+        writeFile(AMPIEZZA_FREQUENZE, ampiezze.sortDesc("quantiNumeri", "freq"));
+        writeFile(FREQUENZE, freqs);
     }
 
     private PList<Frequenza> leggiFrequenze() {
@@ -623,6 +726,18 @@ public class Lotto5Minuti extends PilotSupport {
             freq.add(new Frequenza(numero, fr));
         }
         return freq;
+    }
+
+    private PList<Ampiezza> leggiAmpiezze() {
+        PList<String> cont = readFile(AMPIEZZA_FREQUENZE);
+        PList<Ampiezza> ampiezze = pl();
+        for (String s : safe(cont)) {
+            PList<String> arr = split(s, "-->");
+            Integer frq = getInteger(substring(arr.getFirstElement(), "Frequenza ", false, false, null, false, false));
+            Integer ampiezza = getInteger(substring(arr.getLastElement(), null, false, false, " numeri", false, true));
+            ampiezze.add(new Ampiezza(frq, ampiezza));
+        }
+        return ampiezze;
     }
 
 

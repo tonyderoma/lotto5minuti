@@ -60,6 +60,9 @@ public class Estrazione5Minuti extends PilotSupport {
         msgDoppioOro += str(getDoppioOro(), colon());
     }
 
+    public int getNumero() {
+        return numero;
+    }
 
     public void setNumero(int numero) {
         this.numero = numero;
