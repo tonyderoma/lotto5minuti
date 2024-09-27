@@ -1,15 +1,29 @@
 package it.lotto5.dto;
 
-public class Ampiezza {
+import it.eng.pilot.PList;
+import it.eng.pilot.PilotSupport;
+
+public class Ampiezza extends PilotSupport {
 
     private Integer freq;
     private Integer ampiezza;
+
+    private PList<Integer> numeriIntercettati = pl();
+
+    private Integer quantiIntercettati = pl().size();
 
 
     public Ampiezza(Integer freq, Integer ampiezza) {
         this.freq = freq;
         this.ampiezza = ampiezza;
     }
+
+    public Ampiezza(Integer freq, Integer ampiezza, Integer quantiIntercettati) {
+        this.freq = freq;
+        this.ampiezza = ampiezza;
+        this.quantiIntercettati = quantiIntercettati;
+    }
+
 
     public Integer getFreq() {
         return freq;
@@ -28,6 +42,29 @@ public class Ampiezza {
     }
 
     public String toString() {
-        return "Frequenza " + getFreq() + "-->" + getAmpiezza() + " numeri";
+        return str("Frequenza ", getFreq(), "-->", getAmpiezza(), tab(), getNumeriIntercettati().size(), " numeri intercettati: ", getNumeriIntercettati().concatenaDash());
     }
+
+    public void addNumeroIntercettato(Integer numero) {
+        if (!getNumeriIntercettati().contains(numero))
+            getNumeriIntercettati().add(numero);
+    }
+
+    public PList<Integer> getNumeriIntercettati() {
+        return numeriIntercettati;
+    }
+
+    public void setNumeriIntercettati(PList<Integer> numeriIntercettati) {
+        this.numeriIntercettati = numeriIntercettati;
+    }
+
+    public Integer getQuantiIntercettati() {
+        return quantiIntercettati;
+    }
+
+    public void setQuantiIntercettati(Integer quantiIntercettati) {
+        this.quantiIntercettati = quantiIntercettati;
+    }
+
+
 }
