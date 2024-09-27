@@ -42,7 +42,7 @@ public class Ampiezza extends PilotSupport {
     }
 
     public String toString() {
-        return str("Frequenza ", getFreq(), "-->", getAmpiezza(), tab(), getNumeriIntercettati().size(), " numeri intercettati: ", getNumeriIntercettati().concatenaDash());
+        return str("Frequenza ", getFreq(), arrow(), getAmpiezza(), tab(), getNumeriIntercettati().size(), " numeri intercettati: ", getNumeriIntercettati().concatenaDash());
     }
 
     public void addNumeroIntercettato(Integer numero) {
