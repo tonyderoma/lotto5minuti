@@ -1,24 +1,57 @@
 package it.lotto5;
 
+import it.eng.pilot.PDate;
 import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
 import it.lotto5.dto.Estrazione5Minuti;
 import it.lotto5.dto.Frequenza;
 import org.apache.log4j.BasicConfigurator;
 
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 public class StudioFrequenze extends PilotSupport {
+    private static final String URL = "https://www.lottologia.com/10elotto5minuti/archivio-estrazioni/?as=TXT&date=";
+    private static final int BUFFER_SIZE = 4096;
+    PList<Estrazione5Minuti> estrazioni = pl();
 
     public static void main(String[] args) throws Exception {
         BasicConfigurator.configure();
         StudioFrequenze sf = new StudioFrequenze();
         //sf.calcolaFrequenzeFinoA((198,"14-09-2024"));
-        sf.run1(180, "23-09-2024");
-        sf.run1(180, "24-09-2024");
+        //sf.run1(180, "23-09-2024");
+        //sf.run1(180, "24-09-2024");
+        sf.inComune();
+
     }
 
+
+    private void inComune() throws Exception {
+        //download(pd());
+        PList<Estrazione5Minuti> estrazioni = loadEstrazioni("28-09-2024");
+        PList<Integer> ultima = estrazioni.get(0).getEstrazione();
+        for (int i = 1; i <= 30; i++) {
+            PList<Integer> numeri = estrazioni.randomOne().getEstrazione().random(12);
+            log(numeri.size());
+            log("In comune ", ultima.intersection(numeri));
+        }
+
+/*        PList<Integer> numbers = pl();
+        for (int j = 1; j < 30; j++) {
+            numbers.clear();
+            for (int i = 0; i < 20; i++) {
+                numbers.add(estrazioni.randomOne().getEstrazione().get(i));
+            }
+            log(numbers.distinct().size());
+            log("In comune ", ultima.intersection(numbers));
+        }
+*/
+
+    }
 
     private void run1(Integer numeroEstrazione, String giorno) throws Exception {
         PList<Integer> frequenzeEstratte = pl();
@@ -77,5 +110,30 @@ public class StudioFrequenze extends PilotSupport {
             estrazioni.add(new Estrazione5Minuti((s)));
         }));
         return estrazioni;
+    }
+
+    private void download(PDate giorno) throws Exception {
+        URL url = new URL(str(URL, giorno.toStringFormat("yyyy-MM-dd")));
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.setRequestProperty("User-Agent",
+                "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
+        int responseCode = httpConn.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            // opens input stream from the HTTP connection
+            InputStream inputStream = httpConn.getInputStream();
+            // opens an output stream to save into file
+            FileOutputStream outputStream = new FileOutputStream(str("estrazioni/", giorno.toStringFormat("dd-MM-YYYY"), dot(), "txt"));
+            int bytesRead = -1;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.close();
+            inputStream.close();
+            System.out.println("File downloaded");
+        } else {
+            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+        }
+        httpConn.disconnect();
     }
 }
