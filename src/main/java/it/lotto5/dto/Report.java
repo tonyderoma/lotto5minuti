@@ -4,9 +4,9 @@ import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
 
 public class Report extends PilotSupport {
-    PList<Integer> frequenze;
-    PList<Integer> sviluppati;
-    PList<Integer> intercettati;
+    PList<Integer> frequenze = pl();
+    PList<Integer> sviluppati = pl();
+    PList<Integer> intercettati = pl();
 
     public Report(PList<Integer> frequenze, PList<Integer> sviluppati, PList<Integer> intercettati) {
         this.frequenze = frequenze;
@@ -23,6 +23,6 @@ public class Report extends PilotSupport {
     }
 
     public String toString() {
-        return str("Frequenze:", quadra(), frequenze.concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.concatenaDash(), "  intercettati ", intercettati.size(), " numeri: ", intercettati.concatenaDash());
+        return str(intercettati.size(), slash(), sviluppati.size(), "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
     }
 }
