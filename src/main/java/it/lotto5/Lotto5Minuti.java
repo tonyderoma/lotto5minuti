@@ -17,9 +17,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Lotto5Minuti extends PilotSupport {
@@ -80,8 +78,8 @@ public class Lotto5Minuti extends PilotSupport {
     private void autorun() throws Exception {
         Integer oraStop = 24;
         Integer minutiStop = 00;
-        Integer oraStart = 1;
-        Integer minutiStart = 0;
+        Integer oraStart = 2;
+        Integer minutiStart = 30;
         PDate start = pd().ora(oraStart).minuti(minutiStart);
         vincitaFinale = 0;
         spesaFinale = 0;
@@ -186,20 +184,25 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> ampiezzePuntuali = pl();
         PList<Integer> frequenzeBuone = ampiezze.gt("quantiIntercettati", 0).find().sort("freq").narrow("freq");
         log("Frequenze buone", frequenzeBuone.concatenaDash());
-        Integer ampiezzaMinima = 6;
-        Integer ampiezzaMassima = 7;
+        Integer ampiezzaMinima = 3;
+        Integer ampiezzaMassima = 4;
         PList<Integer> frequenzeBuoneSelezionate = ampiezze.between("quantiIntercettati", 1, 5).between("ampiezza", ampiezzaMinima, ampiezzaMassima).find().sort("freq").narrow("freq");
+        PList<Integer> frequenzeNonBuoneSelezionate = ampiezze.eq("quantiIntercettati", 0).gt("ampiezza", 2).find().sort("freq").narrow("freq");
         PList<Integer> numeriInGiocoFrequenzeBuoneSelezionate = fre.in("freq", frequenzeBuoneSelezionate).find().narrow("numero");
+        PList<Integer> numeriInGiocoFrequenzeNonBuoneSelezionate = fre.in("freq", frequenzeNonBuoneSelezionate).find().narrow("numero");
         log("Frequenze buone selezionate ampiezza [", ampiezzaMinima, comma(), ampiezzaMassima, quadraClose(), space(), frequenzeBuoneSelezionate.concatenaDash(), " sviluppati ", numeriInGiocoFrequenzeBuoneSelezionate.size(), " numeri: ", numeriInGiocoFrequenzeBuoneSelezionate.sort().concatenaDash());
+        log("Frequenze NON buone selezionate ", tab(), frequenzeNonBuoneSelezionate.concatenaDash(), " sviluppati ", numeriInGiocoFrequenzeNonBuoneSelezionate.size(), " numeri: ", numeriInGiocoFrequenzeNonBuoneSelezionate.sort().concatenaDash());
         //ampiezzePuntuali.add(4);
         //ampiezzePuntuali.add(3);
         //ampiezzePuntuali.add(2);
-        PList<Integer> numeriDaAmpiezzePuntuali = getNumeriAmpiezzaPuntuale(ampiezze, fre, ampiezzePuntuali, frequenzeEstratte);
-        PList<Integer> numeriDaFrequenzePuntuali = getNumeriFrequenzePuntuali(fre, frequenzeBuoneSelezionate, frequenzeEstratte, false);
-
+        //PList<Integer> numeriDaAmpiezzePuntuali = getNumeriAmpiezzaPuntuale(ampiezze, fre, ampiezzePuntuali, frequenzeEstratte);
+        PList<Integer> numeriDaFrequenzeBuone = getNumeriFrequenzePuntuali(fre, frequenzeBuoneSelezionate, frequenzeEstratte, false);
+        PList<Integer> numeriDaFrequenzeNonBuone = getNumeriFrequenzePuntuali(fre, frequenzeNonBuoneSelezionate, frequenzeEstratte, false);
         giocaNumeri(numeriDaAmpiezzeBasse, pl(3, 4, 5, 6), 3);
         //giocaNumeri(numeriDaAmpiezzePuntuali, pl(5, 6, 7), 3);
-        giocaNumeri(numeriDaFrequenzePuntuali, pl(3, 4, 5, 6), 3);
+        giocaNumeri(numeriDaFrequenzeBuone, pl(3, 4, 5, 6), 3);
+        giocaNumeri(numeriDaFrequenzeNonBuone, pl(3, 4, 5, 6), 3);
+
 
 
         /*
@@ -232,13 +235,14 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void giocaNumeri(PList<Integer> numeri, PList<Integer> lunghezzeGiocate, int quantePerLunghezza) {
-        if (numeri.size() > 25) {
+        if (numeri.size() > 25) return;//non gioco nulla se ho troppi numeri sviluppati
+        if (numeri.size() >= 18 && numeri.size() <= 25) {
             lunghezzeGiocate = pl(7, 8, 9, 10);
         }
         if (numeri.size() >= 3)
             for (int i = 1; i <= quantePerLunghezza; i++) {
                 for (Integer quanti : lunghezzeGiocate)
-                    giocateMultiple.add(generaGiocataDa(numeri, quanti));
+                    giocateMultiple.add(numeri.random(quanti));
             }
     }
 
@@ -271,6 +275,7 @@ public class Lotto5Minuti extends PilotSupport {
     private PList<Integer> getNumeriAmpiezzaPuntuale(PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Integer> amps, PList<Integer> frequenzeEstratte) throws Exception {
         if (Null(amps)) return pl();
         PList<Integer> frequenze = ampiezze.in("ampiezza", amps).find().narrowDistinct("freq");
+        if (Null(frequenze)) return pl();
         PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
         log("Numeri sviluppati per ampiezze puntuali ", amps.concatenaDash(), tab(), numeri.size(), " numeri:   ", numeri.sort().concatenaDash());
         log("Estratti", frequenzeEstratte.in(frequenze).find().size(), " numeri per le frequenze di ampiezza  ", amps.concatenaDash(), " numeri intercettati:", trovaNumeriEstratti(frequenze, fre));
@@ -323,11 +328,6 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-    private Integer scegliNumeroCasuale(PList<Integer> numeri) {
-        Integer max = numeri.size() - 1;
-        return numeri.get(generaNumeroCasuale(0, max));
-    }
-
     private void generaGiocatePariDispari(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
         if (numeriSottofrequenze.size() >= 7 && numeriSottofrequenze.size() <= 10)
             giocateMultiple.add(numeriSottofrequenze);
@@ -345,20 +345,20 @@ public class Lotto5Minuti extends PilotSupport {
         int quanteDispari = quanteGiocate - quantePari;
         if (pari.size() >= 3)
             for (int i = 1; i <= quantePari; i++) {
-                giocateMultiple.add(generaGiocataDa(pari, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+                giocateMultiple.add(pari.random(lunghezzeGiocateAmmesse.randomOne()));
             }
         if (dispari.size() >= 3)
             for (int i = 1; i <= quanteDispari; i++) {
-                giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+                giocateMultiple.add(dispari.random(lunghezzeGiocateAmmesse.randomOne()));
             }
 
         if (pari.size() >= 15)
             for (int i = 1; i <= quantePari; i++) {
-                giocateMultiple.add(generaGiocataDa(pari, scegliNumeroCasuale(pl(7, 8, 9, 10))));
+                giocateMultiple.add(pari.random(pl(7, 8, 9, 10).randomOne()));
             }
         if (dispari.size() >= 15)
             for (int i = 1; i <= quanteDispari; i++) {
-                giocateMultiple.add(generaGiocataDa(dispari, scegliNumeroCasuale(pl(7, 8, 9, 10))));
+                giocateMultiple.add(dispari.random(pl(7, 8, 9, 10).randomOne()));
             }
         generaGiocatePariDispariDinamiche(numeriSottofrequenze);
     }
@@ -380,7 +380,7 @@ public class Lotto5Minuti extends PilotSupport {
 
     private void generaGiocate(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
         for (int i = 1; i <= quanteGiocate; i++) {
-            giocateMultiple.add(generaGiocataDa(numeriSottofrequenze, scegliNumeroCasuale(lunghezzeGiocateAmmesse)));
+            giocateMultiple.add(numeriSottofrequenze.random(lunghezzeGiocateAmmesse.randomOne()));
         }
     }
 
@@ -427,7 +427,7 @@ public class Lotto5Minuti extends PilotSupport {
         return dispari;
     }
 
-    private PList<Integer> generaGiocataDa(PList<Integer> lista, Integer quantiNumeri) {
+    private PList<Integer> generaGiaocataDa(PList<Integer> lista, Integer quantiNumeri) {
         if (lista.size() < quantiNumeri) quantiNumeri = lista.size();
         PList<Integer> giocata = pl();
         for (int i = 1; i <= quantiNumeri; i++) {
@@ -460,19 +460,6 @@ public class Lotto5Minuti extends PilotSupport {
         }
         if (notNull(giocata))
             giocateMultiple.add(giocata);
-    }
-
-    private List<Integer> generaGiocata(Integer lunghezza, Integer min, Integer max) {
-        List<Integer> giocata = new ArrayList<>();
-        for (int i = 1; i <= lunghezza; i++) {
-            Integer numero = generaNumeroCasuale(min, max);
-            if (giocata.contains(numero)) {
-                i--;
-                continue;
-            }
-            giocata.add(numero);
-        }
-        return giocata;
     }
 
 
