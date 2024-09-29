@@ -267,7 +267,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private PList<Integer> limitaNumeriSviluppati(PList<Integer> numeriSviluppati, PList<Integer> freqs, PList<Frequenza> fre) throws Exception {
-        while (numeriSviluppati.size() >= maxNumeriSviluppati) {
+        while (numeriSviluppati.size() > maxNumeriSviluppati) {
             freqs = freqs.dropLast();
             numeriSviluppati = fre.in("freq", freqs).find().narrowDistinct("numero");
         }
