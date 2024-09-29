@@ -25,4 +25,20 @@ public class Report extends PilotSupport {
     public String toString() {
         return str(intercettati.size(), slash(), sviluppati.size(), "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
     }
+
+    public PList<Integer> getSviluppati() {
+        return sviluppati;
+    }
+
+    public void setSviluppati(PList<Integer> sviluppati) {
+        this.sviluppati = sviluppati;
+    }
+
+    public PList<Integer> getIntercettati() {
+        return intercettati;
+    }
+
+    public void setIntercettati(PList<Integer> intercettati) {
+        this.intercettati = intercettati;
+    }
 }

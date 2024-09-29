@@ -122,7 +122,7 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
         PList<Integer> penultimaEstrazione = estrazioni.get(1).getEstrazione();
         PList<Integer> inComune = estrazioni.getFirstElement().getEstrazione().intersection(penultimaEstrazione);
-        log("NUMERI IN COMUNE CON L'ESTRAZIONE PRECEDENTE", inComune.concatenaDash());
+        log(inComune.size(), "NUMERI IN COMUNE CON L'ESTRAZIONE PRECEDENTE", inComune.concatenaDash());
         PList<Integer> frequenzeEstratte = pl();
         PList<Integer> frequenzeEstrattePrecedenti = pl();
         if (notNull(fre))
@@ -151,23 +151,37 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> numeriDaAmpiezzeBasse = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
         PList<Integer> ampiezzePuntuali = pl();
         PList<Integer> frequenzeBuone = ampiezze.gt("quantiIntercettati", 0).find().sort("freq").narrow("freq");
-        Integer ampiezzaMinima = 5;
-        Integer ampiezzaMassima = 6;
+        Integer ampiezzaMinima = 3;
+        Integer ampiezzaMassima = 4;
         PList<Integer> frequenzeBuoneSelezionate = ampiezze.between("quantiIntercettati", 1, 5).between("ampiezza", ampiezzaMinima, ampiezzaMassima).find().sort("freq").narrow("freq");
         PList<Integer> frequenzeNonBuoneSelezionate = ampiezze.eq("quantiIntercettati", 0).gt("ampiezza", 2).find().sort("freq").narrow("freq");
+        PList<Integer> frequenzeProlifiche = ampiezze.sortDesc("quantiIntercettati").narrow("freq");
         //ampiezzePuntuali.add(4);
         //ampiezzePuntuali.add(3);
         //ampiezzePuntuali.add(2);
         //PList<Integer> numeriDaAmpiezzePuntuali = getNumeriAmpiezzaPuntuale(ampiezze, fre, ampiezzePuntuali, report, false);
-        PList<Integer> numeriDaFrequenzeBuone = getNumeriFrequenzePuntuali(fre, frequenzeBuoneSelezionate, report, true);
-        PList<Integer> numeriDaFrequenzeNonBuone = getNumeriFrequenzePuntuali(fre, frequenzeNonBuoneSelezionate, report, true);
+
+
+        //PList<Integer> numeriDaFrequenzeBuone = getNumeriFrequenzePuntuali(fre, frequenzeBuoneSelezionate, report, true);
+        PList<Integer> numeriDaFrequenzeProlifiche = getNumeriFrequenzePuntuali(fre, frequenzeProlifiche.cutToFirst(3), report, false);
+        PList<Integer> numeriDaFrequenzeNonBuone = getNumeriFrequenzePuntuali(fre, frequenzeNonBuoneSelezionate, report, false);
         giocaNumeri(numeriDaAmpiezzeBasse, pl(3, 4, 5, 6), 3);
         //giocaNumeri(numeriDaAmpiezzePuntuali, pl(5, 6, 7), 3);
-        giocaNumeri(numeriDaFrequenzeBuone, pl(3, 4, 5, 6), 3);
+        giocaNumeri(numeriDaFrequenzeProlifiche, pl(3, 4, 5, 6), 3);
         giocaNumeri(numeriDaFrequenzeNonBuone, pl(3, 4, 5, 6), 3);
 
         report.forEach(System.out::println);
-
+        Integer intercettati = 0;
+        Integer sviluppati = 0;
+        PList<Integer> totaleIntercettati = pl();
+        PList<Integer> totaleSviluppati = pl();
+        for (Report r : report) {
+            intercettati += r.getIntercettati().size();
+            totaleIntercettati.addAll(r.getIntercettati());
+            totaleSviluppati.addAll((r.getSviluppati()));
+            sviluppati += r.getSviluppati().size();
+        }
+        System.out.println(str(intercettati, slash(), sviluppati, tab(), "Intercettati:", totaleIntercettati.sort().concatenaDash(), "  Sviluppati:", totaleSviluppati.sort().concatenaDash()));
         /*
         Integer low = frequenzeEstrattePrecedenti.get(Integer.valueOf(posizioneMedia - 1));
         Integer high = frequenzeEstrattePrecedenti.get(Integer.valueOf(posizioneMedia + 2));

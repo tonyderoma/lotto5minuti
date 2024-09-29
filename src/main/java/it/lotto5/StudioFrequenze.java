@@ -31,23 +31,32 @@ public class StudioFrequenze extends PilotSupport {
 
 
     private void inComune() throws Exception {
-        //download(pd());
-        PList<Estrazione5Minuti> estrazioni = loadEstrazioni("28-09-2024");
+        //download(now());
+        PList<Estrazione5Minuti> estrazioni = loadEstrazioni("29-09-2024");
         PList<Integer> ultima = estrazioni.get(0).getEstrazione();
-        for (int i = 1; i <= 30; i++) {
-            PList<Integer> numeri = estrazioni.randomOne().getEstrazione().random(12);
+        PList<Integer> es1 = pl(estrazioni.randomOne().getEstrazione().subList(0, 3));
+        PList<Integer> es2 = pl(estrazioni.randomOne().getEstrazione().subList(3, 7));
+        PList<Integer> es3 = pl(estrazioni.randomOne().getEstrazione().subList(7, 11));
+        PList<Integer> es4 = pl(estrazioni.randomOne().getEstrazione().subList(11, 15));
+        PList<Integer> es5 = pl(estrazioni.randomOne().getEstrazione().subList(15, 20));
+        PList<Integer> totale = es1.aggiungiList(es2, es3, es4, es5);
+        log(totale.concatenaDash());
+        PList<Integer> inComune = ultima.intersection(totale);
+        log("In comune", inComune.size(), " numeri:", inComune.sort().concatenaDash());
+
+      /*  for (int i = 1; i <= 30; i++) {
+            PList<Integer> numeri = estrazioni.randomOne().getEstrazione();
             log(numeri.size());
             log("In comune ", ultima.intersection(numeri));
-        }
-
-/*        PList<Integer> numbers = pl();
-        for (int j = 1; j < 30; j++) {
+        }*/
+        /*PList<Integer> numbers = pl();
+        for (int j = 1; j < 130; j++) {
             numbers.clear();
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 8; i++) {
                 numbers.add(estrazioni.randomOne().getEstrazione().get(i));
             }
-            log(numbers.distinct().size());
-            log("In comune ", ultima.intersection(numbers));
+            PList<Integer> intercettati = ultima.intersection(numbers);
+            log("In comune", intercettati.size(), tab(), intercettati.concatenaDash());
         }
 */
 
