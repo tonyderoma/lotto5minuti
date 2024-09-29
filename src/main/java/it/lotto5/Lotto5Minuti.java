@@ -233,7 +233,10 @@ public class Lotto5Minuti extends PilotSupport {
             }
         }
         PList<Integer> numeriSviluppati = fre.in("freq", frequenzeTrovate).find().narrowDistinct("numero");
-        numeriSviluppati = limitaNumeriSviluppati(numeriSviluppati, frequenzeTrovate, fre);
+        while (numeriSviluppati.size() > maxNumeriSviluppati) {
+            frequenzeTrovate = frequenzeTrovate.dropLast();
+            numeriSviluppati = fre.in("freq", frequenzeTrovate).find().narrowDistinct("numero");
+        }
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
@@ -245,7 +248,10 @@ public class Lotto5Minuti extends PilotSupport {
     private PList<Integer> getNumeriAmpiezzaTra(int minAmpiezza, int maxAmpiezza, PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
         PList<Integer> frequenze = ampiezze.between("ampiezza", minAmpiezza, maxAmpiezza).find().narrowDistinct("freq");
         PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
-        numeri = limitaNumeriSviluppati(numeri, frequenze, fre);
+        while (numeri.size() > maxNumeriSviluppati) {
+            frequenze = frequenze.dropLast();
+            numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
+        }
         if (togliNumeriUltimaEstrazione) {
             numeri = numeri.sottraiList(estrazioni.get(1).getEstrazione());
         }
@@ -258,7 +264,10 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> frequenze = ampiezze.in("ampiezza", amps).find().narrowDistinct("freq");
         if (Null(frequenze)) return pl();
         PList<Integer> numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
-        numeri = limitaNumeriSviluppati(numeri, frequenze, fre);
+        while (numeri.size() > maxNumeriSviluppati) {
+            frequenze = frequenze.dropLast();
+            numeri = fre.in("freq", frequenze).find().narrowDistinct("numero");
+        }
         if (togliNumeriUltimaEstrazione) {
             numeri = numeri.sottraiList(estrazioni.get(1).getEstrazione());
         }
@@ -266,18 +275,14 @@ public class Lotto5Minuti extends PilotSupport {
         return numeri;
     }
 
-    private PList<Integer> limitaNumeriSviluppati(PList<Integer> numeriSviluppati, PList<Integer> freqs, PList<Frequenza> fre) throws Exception {
-        while (numeriSviluppati.size() > maxNumeriSviluppati) {
-            freqs = freqs.dropLast();
-            numeriSviluppati = fre.in("freq", freqs).find().narrowDistinct("numero");
-        }
-        return numeriSviluppati;
-    }
 
     private PList<Integer> getNumeriFrequenzePuntuali(PList<Frequenza> fre, PList<Integer> freqs, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
         if (Null(freqs)) return pl();
         PList<Integer> numeriSviluppati = fre.in("freq", freqs).find().narrowDistinct("numero");
-        numeriSviluppati = limitaNumeriSviluppati(numeriSviluppati, freqs, fre);
+        while (numeriSviluppati.size() > maxNumeriSviluppati) {
+            freqs = freqs.dropLast();
+            numeriSviluppati = fre.in("freq", freqs).find().narrowDistinct("numero");
+        }
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
