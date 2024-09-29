@@ -164,6 +164,12 @@ public class Lotto5Minuti extends PilotSupport {
         giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
     }
 
+    //gioca numeri estratti da frequenze scelte a caso
+    private void modoGiocoFrequenzeCasuali(Integer quanteFrequenzeCasuali, PList<Frequenza> fre, PList<Report> report, boolean togliNumeriEstrazionePrecedente) throws Exception {
+        PList<Integer> frequenze = fre.narrow("freq");
+        modoGiocoFrequenzePuntuali(frequenze.random(quanteFrequenzeCasuali), report, fre, togliNumeriEstrazionePrecedente);
+    }
+
     private void modoGiocoFrequenzeTra(Integer minFreq, Integer maxFreq, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente) throws Exception {
         PList<Integer> numeri = getNumeriFrequenzeTra(minFreq, maxFreq, fre, report, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
