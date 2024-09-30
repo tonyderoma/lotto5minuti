@@ -83,6 +83,7 @@ public class Lotto5Minuti extends PilotSupport {
         Integer minutiStop = 00;
         Integer oraStart = 2;
         Integer minutiStart = 30;
+        PDate stop = now().ora(oraStop).minuti(minutiStop);
         PDate start = now().ora(oraStart).minuti(minutiStart);
         vincitaFinale = 0;
         spesaFinale = 0;
@@ -92,7 +93,7 @@ public class Lotto5Minuti extends PilotSupport {
                 attendiMinuti(5);
                 continue;
             }
-            if (now().isAfter(now().ora(oraStop).minuti(minutiStop))) break;
+            if (now().isAfter(stop)) break;
             attendiSecondi(10);
             if (now().getMinuti() % 5 == 0) {
                 log("Scattati i 5 minuti ", now().getOraCompleta(), " procedo con l'elaborazione!!!!!");
