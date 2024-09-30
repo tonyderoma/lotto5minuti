@@ -158,6 +158,7 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoFrequenzeCasuali(3, fre, report, false);
         //modoGiocoFrequenzeCasuali(3, fre, report, false);
         // modoGiocoTipoFrequenze(ampiezze, report, fre);
+        modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
 
         printReport(report);
@@ -195,6 +196,18 @@ public class Lotto5Minuti extends PilotSupport {
         giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
     }
 
+    private void modoGiocoFrequenzePuntuali(PList<Integer> freqs, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+        if (!pariDispari) modoGiocoFrequenzePuntuali(freqs, report, fre, togliNumeriEstrazionePrecedente);
+        else {
+            limitaSviluppati = false;
+            PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
+            limitaSviluppati = true;
+            giocaNumeri(pari(numeri), pl(3, 4, 5, 6), 1);
+            giocaNumeri(dispari(numeri), pl(3, 4, 5, 6), 1);
+        }
+    }
+
+
     private void modoGiocoAmpiezzePuntuali(PList<Integer> amps, PList<Report> report, PList<Frequenza> fre, PList<Ampiezza> ampiezze, boolean togliNumeriEstrazionePrecedente) throws Exception {
         PList<Integer> numeri = getNumeriAmpiezzePuntuali(ampiezze, fre, amps, report, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
@@ -221,34 +234,37 @@ public class Lotto5Minuti extends PilotSupport {
     //Modalità di gioco per posizione nell'array di frequenze estratte precedente bottom, medium , top
     private void modoGiocoPosizionale(PList<Integer> frequenzeEstrattePrecedenti, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         Integer quanteFrequenzeDistinte = frequenzeEstrattePrecedenti.size();
-        Integer posizioneMedia = frequenzeEstrattePrecedenti.size() / 2 - 1;
-        Integer low = frequenzeEstrattePrecedenti.get(Integer.valueOf(posizioneMedia - 1));
-        Integer high = frequenzeEstrattePrecedenti.get(Integer.valueOf(posizioneMedia + 2));
-        modoGiocoFrequenzeTra(low, high, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+        Integer posizioneMedia = quanteFrequenzeDistinte / 2 - 1;
 
-        low = frequenzeEstrattePrecedenti.get(Integer.valueOf(1));
-        high = frequenzeEstrattePrecedenti.get(Integer.valueOf(3));
-        modoGiocoFrequenzeTra(low, high, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+        Integer low = posizioneMedia - 1;
+        Integer high = posizioneMedia + 2;
+        PList<Integer> intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high + 1));
+        modoGiocoFrequenzePuntuali(intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
 
 
-        low = frequenzeEstrattePrecedenti.get(Integer.valueOf(quanteFrequenzeDistinte - 5));
-        high = frequenzeEstrattePrecedenti.get(Integer.valueOf(quanteFrequenzeDistinte - 2));
-        modoGiocoFrequenzeTra(low, high, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+        low = 1;
+        high = 3;
+        intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high + 1));
+        modoGiocoFrequenzePuntuali(intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+
+
+        low = quanteFrequenzeDistinte - 5;
+        high = quanteFrequenzeDistinte - 2;
+        intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high + 1));
+        modoGiocoFrequenzePuntuali(intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
     }
 
     private void printReport(PList<Report> report) {
         report.forEach(System.out::println);
-        Integer intercettati = 0;
-        Integer sviluppati = 0;
         PList<Integer> totaleIntercettati = pl();
         PList<Integer> totaleSviluppati = pl();
         for (Report r : report) {
-            intercettati += r.getIntercettati().size();
             totaleIntercettati.addAll(r.getIntercettati());
             totaleSviluppati.addAll((r.getSviluppati()));
-            sviluppati += r.getSviluppati().size();
         }
-        System.out.println(str(intercettati, slash(), sviluppati, tab(), "Intercettati:", totaleIntercettati.sort().concatenaDash(), "  Sviluppati:", totaleSviluppati.sort().concatenaDash()));
+        totaleIntercettati = totaleIntercettati.distinct();
+        totaleSviluppati = totaleSviluppati.distinct();
+        System.out.println(str(totaleIntercettati.size(), slash(), totaleSviluppati.size(), tab(), "Intercettati:", totaleIntercettati.sort().concatenaDash(), "  Sviluppati:", totaleSviluppati.sort().concatenaDash()));
     }
 
     public PList<Integer> trovaNumeriEstratti(PList<Integer> numeriSviluppati) throws Exception {
