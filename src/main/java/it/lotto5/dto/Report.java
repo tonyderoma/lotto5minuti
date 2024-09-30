@@ -23,7 +23,7 @@ public class Report extends PilotSupport {
     }
 
     public String toString() {
-        String rapporti = str(intercettati.size(), slash(), sviluppati.size(), tab(), " [Pari: ", pari(intercettati).size(), slash(), pari(sviluppati).size(), quadraClose(), space(2), " [Dispari: ", dispari(intercettati).size(), slash(), dispari(sviluppati).size(), quadraClose());
+        String rapporti = str(intercettati.size(), slash(), sviluppati.size(), tab(), " [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose(), space(2), " [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
         return str(rapporti, "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  Intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
     }
 
@@ -43,20 +43,4 @@ public class Report extends PilotSupport {
         this.intercettati = intercettati;
     }
 
-    private PList<Integer> pari(PList<Integer> l) {
-        PList<Integer> pari = pl();
-        l.forEach(i -> {
-            if (i % 2 == 0) pari.add(i);
-        });
-        return pari;
-    }
-
-
-    private PList<Integer> dispari(PList<Integer> l) {
-        PList<Integer> dispari = pl();
-        l.forEach(i -> {
-            if (i % 2 != 0) dispari.add(i);
-        });
-        return dispari;
-    }
 }

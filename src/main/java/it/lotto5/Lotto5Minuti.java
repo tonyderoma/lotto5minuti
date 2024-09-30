@@ -161,7 +161,8 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         modoGiocoAmpiezzeBasse(ampiezze, report, fre, true);
         modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
-
+        Integer quanteFrequenzeRandom = fre.narrow("freq").distinct().size();
+        modoGiocoFrequenzeRandomiche(quanteFrequenzeRandom, report, fre);
         printReport(report);
         salvaFrequenze();
     }
@@ -228,6 +229,21 @@ public class Lotto5Minuti extends PilotSupport {
         }
     }
 
+    private void modoGiocoFrequenzeRandomiche(Integer quanteFrequenze, PList<Report> report, PList<Frequenza> fre) throws Exception {
+        PList<Integer> freqs = fre.narrow("freq");
+        freqs.distinct().random(quanteFrequenze).forEach(f -> {
+            try {
+                PList<Integer> freq = pl();
+                freq.add(f);
+                PList<Integer> numeriSviluppati = fre.eq("freq", f).find().narrow("numero");
+                report.add(new Report(freq, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+                giocaNumeriPariDispari(numeriSviluppati, pl(3, 4), 1);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
 
     //Modalità di gioco frequenze prolifiche e non
     private void modoGiocoTipoFrequenze(PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre) throws Exception {
@@ -263,6 +279,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void printReport(PList<Report> report) {
+        log(lf());
         report.forEach(System.out::println);
         PList<Integer> totaleIntercettati = pl();
         PList<Integer> totaleSviluppati = pl();
@@ -273,6 +290,7 @@ public class Lotto5Minuti extends PilotSupport {
         totaleIntercettati = totaleIntercettati.distinct();
         totaleSviluppati = totaleSviluppati.distinct();
         System.out.println(str(totaleIntercettati.size(), slash(), totaleSviluppati.size(), tab(), "Intercettati:", totaleIntercettati.sort().concatenaDash(), "  Sviluppati:", totaleSviluppati.sort().concatenaDash()));
+        log(lf());
     }
 
     public PList<Integer> trovaNumeriEstratti(PList<Integer> numeriSviluppati) throws Exception {
@@ -288,8 +306,8 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void giocaNumeriPariDispari(PList<Integer> numeri, PList<Integer> lunghezzeGiocate, int quantePerLunghezza) {
-        giocaNumeri(pari(numeri), lunghezzeGiocate, quantePerLunghezza);
-        giocaNumeri(dispari(numeri), lunghezzeGiocate, quantePerLunghezza);
+        giocaNumeri(numeri.pari(), lunghezzeGiocate, quantePerLunghezza);
+        giocaNumeri(numeri.dispari(), lunghezzeGiocate, quantePerLunghezza);
     }
 
 
@@ -400,8 +418,8 @@ public class Lotto5Minuti extends PilotSupport {
     private void generaGiocatePariDispari(PList<Integer> numeriSottofrequenze, Integer quanteGiocate, PList<Integer> lunghezzeGiocateAmmesse) {
         if (numeriSottofrequenze.size() >= 7 && numeriSottofrequenze.size() <= 10)
             giocateMultiple.add(numeriSottofrequenze);
-        PList<Integer> pari = pari(numeriSottofrequenze);
-        PList<Integer> dispari = dispari(numeriSottofrequenze);
+        PList<Integer> pari = numeriSottofrequenze.pari();
+        PList<Integer> dispari = numeriSottofrequenze.dispari();
 
         if (pari.size() >= 8 && pari.size() <= 10)
             giocateMultiple.add(pari);
@@ -434,8 +452,8 @@ public class Lotto5Minuti extends PilotSupport {
 
 
     private void generaGiocatePariDispariDinamiche(PList<Integer> numeri) {
-        PList<Integer> pari = pari(numeri);
-        PList<Integer> dispari = dispari(numeri);
+        PList<Integer> pari = numeri.pari();
+        PList<Integer> dispari = numeri.dispari();
 
         if (pari.size() <= 8 && pari.size() >= 3) {
             giocateMultiple.add(pari);
@@ -451,24 +469,6 @@ public class Lotto5Minuti extends PilotSupport {
         for (int i = 1; i <= quanteGiocate; i++) {
             giocateMultiple.add(numeriSottofrequenze.random(lunghezzeGiocateAmmesse.randomOne()));
         }
-    }
-
-
-    private PList<Integer> pari(PList<Integer> l) {
-        PList<Integer> pari = pl();
-        l.forEach(i -> {
-            if (i % 2 == 0) pari.add(i);
-        });
-        return pari;
-    }
-
-
-    private PList<Integer> dispari(PList<Integer> l) {
-        PList<Integer> dispari = pl();
-        l.forEach(i -> {
-            if (i % 2 != 0) dispari.add(i);
-        });
-        return dispari;
     }
 
 
