@@ -81,7 +81,7 @@ public class Lotto5Minuti extends PilotSupport {
     private void autorun() throws Exception {
         Integer oraStop = 24;
         Integer minutiStop = 00;
-        Integer oraStart = 3;
+        Integer oraStart = 2;
         Integer minutiStart = 30;
         PDate start = now().ora(oraStart).minuti(minutiStart);
         vincitaFinale = 0;
@@ -89,20 +89,20 @@ public class Lotto5Minuti extends PilotSupport {
         bilancioFinale = 0;
         while (true) {
             if (now().isBefore(start)) {
-                Thread.sleep(60000 * 5);
+                attendiMinuti(5);
                 continue;
             }
             if (now().isAfter(now().ora(oraStop).minuti(minutiStop))) break;
-            Thread.sleep(10000);
+            attendiSecondi(10);
             if (now().getMinuti() % 5 == 0) {
                 log("Scattati i 5 minuti ", now().getOraCompleta(), " procedo con l'elaborazione!!!!!");
-                Thread.sleep(10000);
+                attendiSecondi(10);
                 run();
                 frequenze = new HashMap<>();
                 giocateMultiple = pl();
                 giocata = pl();
                 loadGiocate();
-                Thread.sleep(60000);
+                attendiMinuti(1);
             }
         }
         PList<String> out = pl();
@@ -163,7 +163,7 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         modoGiocoAmpiezzeBasse(ampiezze, report, fre, true);
         //modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
-        modoGiocoFrequenze(fre.narrow(FREQ).distinct().size() / 2, report, fre);
+        modoGiocoFrequenze(fre.narrow(FREQ).distinct().size() * 3 / 4, report, fre);
         printReport(report);
         salvaFrequenze();
     }
