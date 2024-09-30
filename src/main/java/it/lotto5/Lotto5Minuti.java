@@ -159,6 +159,7 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoFrequenzeCasuali(3, fre, report, false);
         // modoGiocoTipoFrequenze(ampiezze, report, fre);
         modoGiocoAmpiezzeBasse(ampiezze, report, fre);
+        modoGiocoAmpiezzeBasse(ampiezze, report, fre, true);
         modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
 
         printReport(report);
@@ -202,8 +203,7 @@ public class Lotto5Minuti extends PilotSupport {
             limitaSviluppati = false;
             PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
             limitaSviluppati = true;
-            giocaNumeri(pari(numeri), pl(3, 4, 5, 6), 1);
-            giocaNumeri(dispari(numeri), pl(3, 4, 5, 6), 1);
+            giocaNumeriPariDispari(numeri, pl(3, 4, 5, 6), 1);
         }
     }
 
@@ -218,6 +218,14 @@ public class Lotto5Minuti extends PilotSupport {
     private void modoGiocoAmpiezzeBasse(PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre) throws Exception {
         PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
         giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
+    }
+
+    private void modoGiocoAmpiezzeBasse(PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre, boolean pariDispari) throws Exception {
+        if (!pariDispari) modoGiocoAmpiezzeBasse(ampiezze, report, fre);
+        else {
+            PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
+            giocaNumeriPariDispari(numeri, pl(3, 4, 5, 6), 1);
+        }
     }
 
 
