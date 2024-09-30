@@ -23,7 +23,8 @@ public class Report extends PilotSupport {
     }
 
     public String toString() {
-        return str(intercettati.size(), slash(), sviluppati.size(), "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
+        String pariDispari = str(" Pari: ", pari(intercettati).size(), slash(), pari(sviluppati).size(), tab(), "Dispari: ", dispari(intercettati).size(), slash(), dispari(sviluppati).size());
+        return str(intercettati.size(), slash(), sviluppati.size(), "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  Intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash(), tab(), pariDispari);
     }
 
     public PList<Integer> getSviluppati() {
@@ -40,5 +41,22 @@ public class Report extends PilotSupport {
 
     public void setIntercettati(PList<Integer> intercettati) {
         this.intercettati = intercettati;
+    }
+
+    private PList<Integer> pari(PList<Integer> l) {
+        PList<Integer> pari = pl();
+        l.forEach(i -> {
+            if (i % 2 == 0) pari.add(i);
+        });
+        return pari;
+    }
+
+
+    private PList<Integer> dispari(PList<Integer> l) {
+        PList<Integer> dispari = pl();
+        l.forEach(i -> {
+            if (i % 2 != 0) dispari.add(i);
+        });
+        return dispari;
     }
 }

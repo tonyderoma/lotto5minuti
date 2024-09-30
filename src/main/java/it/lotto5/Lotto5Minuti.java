@@ -238,19 +238,19 @@ public class Lotto5Minuti extends PilotSupport {
 
         Integer low = posizioneMedia - 1;
         Integer high = posizioneMedia + 2;
-        PList<Integer> intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high + 1));
+        PList<Integer> intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
         modoGiocoFrequenzePuntuali(intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
 
 
         low = 1;
         high = 3;
-        intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high + 1));
+        intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
         modoGiocoFrequenzePuntuali(intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
 
 
         low = quanteFrequenzeDistinte - 5;
         high = quanteFrequenzeDistinte - 2;
-        intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high + 1));
+        intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
         modoGiocoFrequenzePuntuali(intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
     }
 
