@@ -24,6 +24,8 @@ public class Lotto5Minuti extends PilotSupport {
 
     public static final Integer maxNumeriSviluppati = 12;
     public static final String FREQ = "freq";
+    public static final String AMPIEZZA = "ampiezza";
+
     public static final String NUMERO = "numero";
 
     public static boolean limitaSviluppati = true;
@@ -168,7 +170,8 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoAmpiezzePuntuali(pl(4), report, fre, ampiezze, false, true);
         modoGiocoAmpiezzePuntuali(pl(2, 3), report, fre, ampiezze, false, true);*/
         modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
-
+        PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
+        modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
         printReport(report);
         salvaFrequenze();
@@ -212,6 +215,13 @@ public class Lotto5Minuti extends PilotSupport {
 
     }
 
+
+    private PList<Integer> calcolaFrequenzeResidue(PList<Report> report, PList<Frequenza> fre) throws Exception {
+        PList<Integer> frequenzeGiocate = pl();
+        report.forEach(r -> frequenzeGiocate.addAll(r.getFrequenze()));
+        return fre.notIn(FREQ, frequenzeGiocate.distinct()).find().sortDesc(FREQ).narrowDistinct(FREQ);
+    }
+
     private void modoGiocoFrequenzePuntuali(PList<Integer> freqs, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente) throws Exception {
         PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
@@ -220,9 +230,9 @@ public class Lotto5Minuti extends PilotSupport {
     private void modoGiocoFrequenzePuntuali(PList<Integer> freqs, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         if (!pariDispari) modoGiocoFrequenzePuntuali(freqs, report, fre, togliNumeriEstrazionePrecedente);
         else {
-            //limitaSviluppati = false;
+            limitaSviluppati = false;
             PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
-            //limitaSviluppati = true;
+            limitaSviluppati = true;
             giocaNumeriPariDispari(numeri, pl(3, 4, 5, 6), 1);
         }
     }
