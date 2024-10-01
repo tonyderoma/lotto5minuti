@@ -220,9 +220,9 @@ public class Lotto5Minuti extends PilotSupport {
     private void modoGiocoFrequenzePuntuali(PList<Integer> freqs, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         if (!pariDispari) modoGiocoFrequenzePuntuali(freqs, report, fre, togliNumeriEstrazionePrecedente);
         else {
-            limitaSviluppati = false;
+            //limitaSviluppati = false;
             PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
-            limitaSviluppati = true;
+            //limitaSviluppati = true;
             giocaNumeriPariDispari(numeri, pl(3, 4, 5, 6), 1);
         }
     }
@@ -356,7 +356,7 @@ public class Lotto5Minuti extends PilotSupport {
         }
         PList<Integer> numeriSviluppati = fre.in(FREQ, frequenzeTrovate).find().narrowDistinct(NUMERO);
         if (limitaSviluppati)
-            while (numeriSviluppati.size() > maxNumeriSviluppati) {
+            while (numeriSviluppati.size() > maxNumeriSviluppati && frequenzeTrovate.size() > 0) {
                 frequenzeTrovate = frequenzeTrovate.dropLast();
                 numeriSviluppati = fre.in(FREQ, frequenzeTrovate).find().narrowDistinct(NUMERO);
             }
@@ -385,7 +385,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (Null(frequenze)) return pl();
         PList<Integer> numeri = fre.in(FREQ, frequenze).find().narrowDistinct(NUMERO);
         if (limitaSviluppati)
-            while (numeri.size() > maxNumeriSviluppati) {
+            while (numeri.size() > maxNumeriSviluppati && frequenze.size() > 0) {
                 frequenze = frequenze.dropLast();
                 numeri = fre.in(FREQ, frequenze).find().narrowDistinct(NUMERO);
             }
@@ -401,7 +401,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (Null(freqs)) return pl();
         PList<Integer> numeriSviluppati = fre.in(FREQ, freqs).find().narrowDistinct(NUMERO);
         if (limitaSviluppati)
-            while (numeriSviluppati.size() > maxNumeriSviluppati) {
+            while (numeriSviluppati.size() > maxNumeriSviluppati && freqs.size() > 0) {
                 freqs = freqs.dropLast();
                 numeriSviluppati = fre.in(FREQ, freqs).find().narrowDistinct(NUMERO);
             }
