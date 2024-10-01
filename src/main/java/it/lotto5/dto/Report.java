@@ -14,6 +14,11 @@ public class Report extends PilotSupport {
         this.intercettati = intercettati;
     }
 
+    public Report(PList<Integer> sviluppati, PList<Integer> intercettati) {
+        this.sviluppati = sviluppati;
+        this.intercettati = intercettati;
+    }
+
     public PList<Integer> getFrequenze() {
         return frequenze;
     }

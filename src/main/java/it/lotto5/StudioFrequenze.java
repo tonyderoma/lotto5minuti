@@ -25,8 +25,33 @@ public class StudioFrequenze extends PilotSupport {
         //sf.calcolaFrequenzeFinoA((198,"14-09-2024"));
         //sf.run1(180, "23-09-2024");
         //sf.run1(180, "24-09-2024");
-        sf.inComune();
+        sf.extra();
 
+    }
+
+
+    private void extra() throws Exception {
+        //download(now());
+        PList<Estrazione5Minuti> estrazioni = loadEstrazioni("01-10-2024");
+        Integer posizione = 25;
+        PList<Integer> ultima = estrazioni.get(posizione).getEstrazione();
+
+        PList<PList<Integer>> giocate = pl();
+        for (int i = 1; i <= 10; i++) {
+            // log(i, tab(), " in comune con extra...", ultima.intersection(estrazioni.get(i).getExtra()).size());
+            PList<Integer> es1 = pl(estrazioni.get(posizione + ultima.get(3)).getExtra().subList(0, 2));
+            PList<Integer> es2 = pl(estrazioni.get(posizione + ultima.get(5)).getExtra().subList(3, 5));
+            PList<Integer> es3 = pl(estrazioni.get(posizione + ultima.get(8)).getExtra().subList(6, 8));
+            giocate.add(es1.aggiungiList(es2, es3));
+        }
+        /*PList<Integer> es4 = pl(estrazioni.get(59).getExtra().subList(9, 11));
+        PList<Integer> es5 = pl(estrazioni.get(81).getExtra().subList(12, 15));
+        */
+        // }
+        for (PList<Integer> giocata : giocate) {
+            PList<Integer> inComune = ultima.intersection(giocata);
+            log("In comune", inComune.size(), " numeri:", inComune.sort().concatenaDash());
+        }
     }
 
 
