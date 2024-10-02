@@ -8,7 +8,16 @@ public class Report extends PilotSupport {
     PList<Integer> sviluppati = pl();
     PList<Integer> intercettati = pl();
 
+    private String tipoGioco;
+
     public Report(PList<Integer> frequenze, PList<Integer> sviluppati, PList<Integer> intercettati) {
+        this.frequenze = frequenze;
+        this.sviluppati = sviluppati;
+        this.intercettati = intercettati;
+    }
+
+    public Report(String tipoGioco, PList<Integer> frequenze, PList<Integer> sviluppati, PList<Integer> intercettati) {
+        this.tipoGioco = tipoGioco;
         this.frequenze = frequenze;
         this.sviluppati = sviluppati;
         this.intercettati = intercettati;
@@ -29,7 +38,7 @@ public class Report extends PilotSupport {
 
     public String toString() {
         String rapporti = str(intercettati.size(), slash(), sviluppati.size(), tab(), " [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose(), space(2), " [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
-        return str(rapporti, "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  Intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
+        return str(getTipoGioco(), tab(), rapporti, "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  Intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
     }
 
     public PList<Integer> getSviluppati() {
@@ -48,4 +57,12 @@ public class Report extends PilotSupport {
         this.intercettati = intercettati;
     }
 
+
+    public String getTipoGioco() {
+        return tipoGioco;
+    }
+
+    public void setTipoGioco(String tipoGioco) {
+        this.tipoGioco = tipoGioco;
+    }
 }

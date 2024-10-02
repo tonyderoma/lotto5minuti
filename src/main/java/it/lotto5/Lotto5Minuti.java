@@ -83,7 +83,7 @@ public class Lotto5Minuti extends PilotSupport {
     private void autorun() throws Exception {
         Integer oraStop = 24;
         Integer minutiStop = 00;
-        Integer oraStart = 2;
+        Integer oraStart = 3;
         Integer minutiStart = 30;
         PDate stop = now().ora(oraStop).minuti(minutiStop);
         PDate start = now().ora(oraStart).minuti(minutiStart);
@@ -165,13 +165,13 @@ public class Lotto5Minuti extends PilotSupport {
         // modoGiocoTipoFrequenze(ampiezze, report, fre);
         modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         modoGiocoAmpiezzeBasse(ampiezze, report, fre, true);
-        /*modoGiocoAmpiezzePuntuali(pl(6), report, fre, ampiezze, false, true);
-        modoGiocoAmpiezzePuntuali(pl(5), report, fre, ampiezze, false, true);
+        modoGiocoAmpiezzePuntuali(pl(2), report, fre, ampiezze, false, true);
+        modoGiocoAmpiezzePuntuali(pl(3), report, fre, ampiezze, false, true);
         modoGiocoAmpiezzePuntuali(pl(4), report, fre, ampiezze, false, true);
-        modoGiocoAmpiezzePuntuali(pl(2, 3), report, fre, ampiezze, false, true);*/
-        modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
-        PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
-        modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
+        modoGiocoAmpiezzePuntuali(pl(5), report, fre, ampiezze, false, true);
+        //modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
+        //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
+        //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
         printReport(report);
         salvaFrequenze();
@@ -327,8 +327,8 @@ public class Lotto5Minuti extends PilotSupport {
             return;
         }
         for (int i = 1; i <= quantePerLunghezza; i++) {
-            for (Integer quanti : lunghezzeGiocate)
-                giocateMultiple.add(numeri.random(quanti));
+            lunghezzeGiocate.forEach(l ->
+                    giocateMultiple.add(numeri.random(l)));
         }
     }
 
@@ -373,7 +373,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        report.add(new Report(frequenzeTrovate, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        report.add(new Report("Ampiezze basse", frequenzeTrovate, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
     }
 
@@ -402,7 +402,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (togliNumeriUltimaEstrazione) {
             numeri = numeri.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        report.add(new Report(frequenze, numeri, trovaNumeriEstratti(numeri)));
+        report.add(new Report(str("Ampiezze puntuali ", amps.concatenaDash()), frequenze, numeri, trovaNumeriEstratti(numeri)));
         return numeri;
     }
 
@@ -418,7 +418,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        report.add(new Report(freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        report.add(new Report(str("Frequenze puntuali ", freqs.concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
     }
 

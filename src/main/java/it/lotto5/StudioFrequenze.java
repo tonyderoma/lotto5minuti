@@ -33,15 +33,22 @@ public class StudioFrequenze extends PilotSupport {
     private void extra() throws Exception {
         //download(now());
         PList<Estrazione5Minuti> estrazioni = loadEstrazioni("01-10-2024");
-        Integer posizione = 25;
+        Integer posizione = 26;
         PList<Integer> ultima = estrazioni.get(posizione).getEstrazione();
-
+        PList<Integer> xx = pl(estrazioni.get(posizione + 44).getExtra().subList(0, 5));
+        PList<Integer> inComuney = ultima.intersection(xx);
+        log(44, "In comune,,,,,,,,,,,", inComuney.size(), " numeri:", inComuney.sort().concatenaDash());
+        for (int i = 0; i <= 19; i++) {
+            xx = pl(estrazioni.get(posizione + ultima.get(i)).getExtra().subList(0, 5));
+            PList<Integer> inComunex = ultima.intersection(xx);
+            log(i, ultima.get(i), "In comunex", inComunex.size(), " numeri:", inComunex.sort().concatenaDash());
+        }
         PList<PList<Integer>> giocate = pl();
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 10; i <= 10; i++) {
             // log(i, tab(), " in comune con extra...", ultima.intersection(estrazioni.get(i).getExtra()).size());
-            PList<Integer> es1 = pl(estrazioni.get(posizione + ultima.get(3)).getExtra().subList(0, 2));
-            PList<Integer> es2 = pl(estrazioni.get(posizione + ultima.get(5)).getExtra().subList(3, 5));
-            PList<Integer> es3 = pl(estrazioni.get(posizione + ultima.get(8)).getExtra().subList(6, 8));
+            PList<Integer> es1 = pl(estrazioni.get(posizione + ultima.get(6)).getExtra().subList(0, 2));
+            PList<Integer> es2 = pl(estrazioni.get(posizione + ultima.get(14)).getExtra().subList(3, 5));
+            PList<Integer> es3 = pl(estrazioni.get(posizione + ultima.get(19)).getExtra().subList(6, 8));
             giocate.add(es1.aggiungiList(es2, es3));
         }
         /*PList<Integer> es4 = pl(estrazioni.get(59).getExtra().subList(9, 11));
