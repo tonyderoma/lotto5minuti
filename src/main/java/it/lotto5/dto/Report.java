@@ -28,6 +28,12 @@ public class Report extends PilotSupport {
         this.intercettati = intercettati;
     }
 
+    public Report(String tipoGioco, PList<Integer> sviluppati, PList<Integer> intercettati) {
+        this.tipoGioco = tipoGioco;
+        this.sviluppati = sviluppati;
+        this.intercettati = intercettati;
+    }
+
     public PList<Integer> getFrequenze() {
         return frequenze;
     }

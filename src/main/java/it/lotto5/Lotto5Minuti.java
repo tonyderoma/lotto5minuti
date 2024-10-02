@@ -178,6 +178,7 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
         //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
+        giocaResidui(report, 6);
         printReport(report);
         salvaFrequenze();
     }
@@ -331,12 +332,24 @@ public class Lotto5Minuti extends PilotSupport {
             totaleIntercettati.addAll(r.getIntercettati());
             totaleSviluppati.addAll((r.getSviluppati()));
         }
-        if (notNull(totaleIntercettati))
-            totaleIntercettati = totaleIntercettati.distinct();
-        if (notNull(totaleSviluppati))
-            totaleSviluppati = totaleSviluppati.distinct();
+        totaleIntercettati = totaleIntercettati.distinct();
+        totaleSviluppati = totaleSviluppati.distinct();
         System.out.println(str(totaleIntercettati.size(), slash(), totaleSviluppati.size(), tab(), "Intercettati:", totaleIntercettati.sort().concatenaDash(), "  Sviluppati:", totaleSviluppati.sort().concatenaDash()));
         log(lf());
+    }
+
+
+    private void giocaResidui(PList<Report> report, Integer quantiResidui) throws Exception {
+        PList<Integer> totaleSviluppati = pl();
+        for (Report r : report) {
+            totaleSviluppati.addAll((r.getSviluppati()));
+        }
+        totaleSviluppati = totaleSviluppati.distinct();
+        while (totaleSviluppati.size() > quantiResidui)
+            totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getExtra());
+        report.add(new Report("Residui", totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
+        giocaNumeriPariDispari(totaleSviluppati, L25, 1);
+        giocaNumeri(totaleSviluppati, L25, 1);
     }
 
     public PList<Integer> trovaNumeriEstratti(PList<Integer> numeriSviluppati) throws Exception {
