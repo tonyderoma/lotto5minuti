@@ -264,14 +264,14 @@ public class Lotto5Minuti extends PilotSupport {
     //Modo gioco che considera i primi numeri al massimo a partire dalle ampiezze 1
     private void modoGiocoAmpiezzeBasse(PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre) throws Exception {
         PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
-        giocaNumeri(numeri, pl(3, 4, 5, 6), 3);
+        giocaNumeri(numeri, pl(2, 3, 4, 5, 6), 3);
     }
 
     private void modoGiocoAmpiezzeBasse(PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre, boolean pariDispari) throws Exception {
         if (!pariDispari) modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         else {
             PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
-            giocaNumeriPariDispari(numeri, pl(3, 4, 5, 6), 1);
+            giocaNumeriPariDispari(numeri, pl(2, 3, 4, 5, 6), 1);
         }
     }
 
@@ -330,7 +330,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void giocaNumeri(PList<Integer> numeri, PList<Integer> lunghezzeGiocate, int quantePerLunghezza) {
-        if (numeri.size() < 3) {
+        if (numeri.size() < lunghezzeGiocate.min()) {
             return;
         }
         for (int i = 1; i <= quantePerLunghezza; i++) {
