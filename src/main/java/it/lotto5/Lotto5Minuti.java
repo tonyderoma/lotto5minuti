@@ -19,6 +19,8 @@ import java.util.Map;
 
 public class Lotto5Minuti extends PilotSupport {
     public static final String FREQUENZE = "frequenze.txt";
+
+    public static final String FREQUENZE_PRECEDENTI = "frequenzePrecedenti.txt";
     public static final String AMPIEZZA_FREQUENZE = "ampiezzaFrequenze.txt";
     public static final String AMPIEZZA_FREQUENZE_PRECEDENTI = "ampiezzaFrequenzePrecedenti.txt";
 
@@ -82,6 +84,7 @@ public class Lotto5Minuti extends PilotSupport {
 
 
     private void autorun() throws Exception {
+        svuotaFile(AMPIEZZA_FREQUENZE, AMPIEZZA_FREQUENZE_PRECEDENTI, FREQUENZE, FREQUENZE_PRECEDENTI);
         Integer oraStop = 24;
         Integer minutiStop = 00;
         Integer oraStart = 3;
@@ -118,44 +121,33 @@ public class Lotto5Minuti extends PilotSupport {
 
     private void elaboraFrequenze() throws Exception {
         if (estrazioni.size() <= 1) return;
-        PList<Frequenza> fre = leggiFrequenze();
+        PList<Frequenza> fre = leggiFrequenze(FREQUENZE);
+        PList<Frequenza> frequenzePrecedenti = leggiFrequenze(FREQUENZE_PRECEDENTI);
         PList<Ampiezza> ampiezze = leggiAmpiezze(AMPIEZZA_FREQUENZE);
+        PList<Ampiezza> ampiezzePrecedenti = leggiAmpiezze(AMPIEZZA_FREQUENZE_PRECEDENTI);
         if (NullOR(fre, ampiezze)) {
             salvaFrequenze();
-            fre = leggiFrequenze();
+            fre = leggiFrequenze(FREQUENZE);
             ampiezze = leggiAmpiezze(AMPIEZZA_FREQUENZE);
+            frequenzePrecedenti = leggiFrequenze(FREQUENZE_PRECEDENTI);
+            ampiezzePrecedenti = leggiAmpiezze(AMPIEZZA_FREQUENZE_PRECEDENTI);
         }
         PList<Report> report = pl();
         PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
         PList<Integer> penultimaEstrazione = estrazioni.get(1).getEstrazione();
         PList<Integer> inComune = estrazioni.getFirstElement().getEstrazione().intersection(penultimaEstrazione);
         log(inComune.size(), "NUMERI IN COMUNE CON L'ESTRAZIONE PRECEDENTE", inComune.concatenaDash());
-        PList<Integer> frequenzeEstratte = pl();
-        PList<Integer> frequenzeEstrattePrecedenti = pl();
-        if (notNull(fre))
-            for (Integer i : ultimaEstrazione) {
-                Frequenza f = fre.eq(NUMERO, i).findOne();
-                if (Null(f)) frequenzeEstratte.add(0);
-                else
-                    frequenzeEstratte.add(f.getFreq());
-            }
-        for (Integer i : penultimaEstrazione) {
-            Frequenza f = fre.eq(NUMERO, i).findOne();
-            if (Null(f)) frequenzeEstrattePrecedenti.add(0);
-            else
-                frequenzeEstrattePrecedenti.add(f.getFreq());
-        }
+        PList<Integer> frequenzeEstratte = calcolaFrequenzeEstratte(fre, ultimaEstrazione);
+        PList<Integer> frequenzeEstrattePrecedenti = calcolaFrequenzeEstratte(frequenzePrecedenti, penultimaEstrazione);
 
-        frequenzeEstratte = frequenzeEstratte.sort();
-
-        log("Frequenze estratte distinte precedenti", frequenzeEstrattePrecedenti.sort().concatenaDash());
-        log("Ampiezze frequenze estratte:", leggiAmpiezze(AMPIEZZA_FREQUENZE_PRECEDENTI).in(FREQ, frequenzeEstrattePrecedenti.distinct()).find().sort(AMPIEZZA).narrow(AMPIEZZA).concatenaDash());
+        log("Frequenze estratte precedenti:", tab(), frequenzeEstrattePrecedenti.concatenaDash());
+        log("Ampiezze  estratte precedenti:", tab(), ampiezzePrecedenti.in(FREQ, frequenzeEstrattePrecedenti.distinct()).find().sort(AMPIEZZA).narrow(AMPIEZZA).concatenaDash());
 
 
-        log("Frequenze estratte attuali   ", frequenzeEstratte.sort().concatenaDash());
-        log("Ampiezze frequenze estratte:", ampiezze.in(FREQ, frequenzeEstratte.distinct()).find().sort(AMPIEZZA).narrow(AMPIEZZA).concatenaDash());
+        log("Frequenze estratte attuali:   ", tab(), frequenzeEstratte.concatenaDash());
+        log("Ampiezze  estratte attuali:   ", tab(), ampiezze.in(FREQ, frequenzeEstratte.distinct()).find().sort(AMPIEZZA).narrow(AMPIEZZA).concatenaDash());
 
-        log("INTERVALLO DI FREQUENZE:  ", quadra(), fre.min(FREQ).getFreq(), comma(), fre.max(FREQ).getFreq(), quadraClose());
+        log("INTERVALLO DI FREQUENZE:      ", quadra(), fre.min(FREQ).getFreq(), comma(), fre.max(FREQ).getFreq(), quadraClose());
         //PList<Integer> frequenzeBuone = ampiezze.gt("quantiIntercettati", 0).find().sort("freq").narrow("freq");
         //PList<Integer> frequenzeBuoneSelezionate = ampiezze.between("quantiIntercettati", 1, 5).between("ampiezza", ampiezzaMinima, ampiezzaMassima).find().sort("freq").narrow("freq");
 
@@ -178,6 +170,18 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoExtraRandom(5, report);
         printReport(report);
         salvaFrequenze();
+    }
+
+    private PList<Integer> calcolaFrequenzeEstratte(PList<Frequenza> fre, PList<Integer> estrazione) throws Exception {
+        PList<Integer> frequenzeEstratte = pl();
+        if (notNull(fre))
+            for (Integer i : estrazione) {
+                Frequenza f = fre.eq(NUMERO, i).findOne();
+                if (Null(f)) frequenzeEstratte.add(0);
+                else
+                    frequenzeEstratte.add(f.getFreq());
+            }
+        return frequenzeEstratte.sort();
     }
 
     //Modo gioco che considera i numeri corrispondenti all'intervallo di ampiezze indicato
@@ -772,9 +776,12 @@ public class Lotto5Minuti extends PilotSupport {
         return fb;
     }
 
-    private PList<Frequenza> calcolaFrequenze() throws Exception {
+    private PList<Frequenza> calcolaFrequenze(boolean precedenti) throws Exception {
+        int j = 0;
+        if (precedenti) j = 1;
         Map<Integer, Integer> frequenze = new HashMap<>();
-        for (Estrazione5Minuti e : safe(estrazioni)) {
+        for (int i = j; i < estrazioni.size(); i++) {
+            Estrazione5Minuti e = estrazioni.get(i);
             for (Integer n : safe(e.getEstrazione())) {
                 if (Null(frequenze.get(n))) {
                     frequenze.put(n, 1);
@@ -791,15 +798,19 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void salvaFrequenze() throws Exception {
-        PList<Frequenza> freqsPrecedenti = leggiFrequenze();
-        PList<Frequenza> freqs = calcolaFrequenze();
-        writeFile(AMPIEZZA_FREQUENZE, calcolaAmpiezze(freqs));
-        writeFile(AMPIEZZA_FREQUENZE_PRECEDENTI, calcolaAmpiezze(freqsPrecedenti));
+        PList<Frequenza> freqsPrecedenti = calcolaFrequenze(true);
+        PList<Frequenza> freqs = calcolaFrequenze(false);
+
+        writeFile(AMPIEZZA_FREQUENZE, calcolaAmpiezze(freqs, false));
+        writeFile(AMPIEZZA_FREQUENZE_PRECEDENTI, calcolaAmpiezze(freqsPrecedenti, true));
         writeFile(FREQUENZE, freqs);
+        writeFile(FREQUENZE_PRECEDENTI, freqsPrecedenti);
     }
 
-    private PList<Ampiezza> calcolaAmpiezze(PList<Frequenza> freqs) throws Exception {
+    private PList<Ampiezza> calcolaAmpiezze(PList<Frequenza> freqs, boolean precedenti) throws Exception {
         PList<Ampiezza> ampiezze = pl();
+        int j = 0;
+        if (precedenti) j = 1;
         Map<Integer, PList<Frequenza>> mappa = freqs.groupBy(FREQ);
         for (Map.Entry<Integer, PList<Frequenza>> entry : mappa.entrySet()) {
             ampiezze.add(new Ampiezza(entry.getKey(), entry.getValue().size()));
@@ -807,15 +818,15 @@ public class Lotto5Minuti extends PilotSupport {
         for (Ampiezza a : ampiezze) {
             for (Frequenza f : freqs)
                 if (is(a.getFreq(), f.getFreq())) {
-                    if (estrazioni.getFirstElement().getEstrazione().contains(f.getNumero()))
+                    if (estrazioni.get(j).getEstrazione().contains(f.getNumero()))
                         a.addNumeroIntercettato((f.getNumero()));
                 }
         }
         return ampiezze.sortDesc(AMPIEZZA, FREQ);
     }
 
-    private PList<Frequenza> leggiFrequenze() {
-        PList<String> cont = readFile(FREQUENZE);
+    private PList<Frequenza> leggiFrequenze(String file) {
+        PList<String> cont = readFile(file);
         PList<Frequenza> freq = pl();
         for (String s : safe(cont)) {
             PList<String> arr = split(s, arrow());
