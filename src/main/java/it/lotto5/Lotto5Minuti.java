@@ -20,6 +20,8 @@ import java.util.Map;
 public class Lotto5Minuti extends PilotSupport {
     public static final String FREQUENZE = "frequenze.txt";
     public static final String AMPIEZZA_FREQUENZE = "ampiezzaFrequenze.txt";
+    public static final String AMPIEZZA_FREQUENZE_PRECEDENTI = "ampiezzaFrequenzePrecedenti.txt";
+
     public static final String REPORT = "REPORT.TXT";
 
     public static final Integer maxNumeriSviluppati = 12;
@@ -52,7 +54,6 @@ public class Lotto5Minuti extends PilotSupport {
     private final Boolean extra = false;
 
     PList<Estrazione5Minuti> estrazioni = pl();
-    Map<Integer, Integer> frequenze = new HashMap<>();
 
 
     private static final String FILE = "lotto5minuti.txt";
@@ -101,7 +102,6 @@ public class Lotto5Minuti extends PilotSupport {
                 log("Scattati i 5 minuti ", now().getOraCompleta(), " procedo con l'elaborazione!!!!!");
                 attendiSecondi(10);
                 run();
-                frequenze = new HashMap<>();
                 giocateMultiple = pl();
                 giocata = pl();
                 loadGiocate();
@@ -770,6 +770,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private PList<Frequenza> calcolaFrequenze() throws Exception {
+        Map<Integer, Integer> frequenze = new HashMap<>();
         for (Estrazione5Minuti e : safe(estrazioni)) {
             for (Integer n : safe(e.getEstrazione())) {
                 if (Null(frequenze.get(n))) {
@@ -783,27 +784,31 @@ public class Lotto5Minuti extends PilotSupport {
         for (Map.Entry<Integer, Integer> entry : frequenze.entrySet()) {
             frequencies.add(new Frequenza(entry.getKey(), entry.getValue()));
         }
-        frequencies = frequencies.sortDesc(FREQ);
-        return frequencies;
+        return frequencies.sortDesc(FREQ);
     }
 
     private void salvaFrequenze() throws Exception {
+        PList<Frequenza> freqsPrecedenti = leggiFrequenze();
         PList<Frequenza> freqs = calcolaFrequenze();
+        writeFile(AMPIEZZA_FREQUENZE, calcolaAmpiezze(freqs));
+        writeFile(AMPIEZZA_FREQUENZE_PRECEDENTI, calcolaAmpiezze(freqsPrecedenti));
+        writeFile(FREQUENZE, freqs);
+    }
+
+    private PList<Ampiezza> calcolaAmpiezze(PList<Frequenza> freqs) throws Exception {
         PList<Ampiezza> ampiezze = pl();
         Map<Integer, PList<Frequenza>> mappa = freqs.groupBy(FREQ);
         for (Map.Entry<Integer, PList<Frequenza>> entry : mappa.entrySet()) {
             ampiezze.add(new Ampiezza(entry.getKey(), entry.getValue().size()));
         }
         for (Ampiezza a : ampiezze) {
-            for (Map.Entry<Integer, Integer> entry : frequenze.entrySet()) {
-                if (is(a.getFreq(), entry.getValue())) {
-                    if (estrazioni.getFirstElement().getEstrazione().contains(entry.getKey()))
-                        a.addNumeroIntercettato((entry.getKey()));
+            for (Frequenza f : freqs)
+                if (is(a.getFreq(), f.getFreq())) {
+                    if (estrazioni.getFirstElement().getEstrazione().contains(f.getNumero()))
+                        a.addNumeroIntercettato((f.getNumero()));
                 }
-            }
         }
-        writeFile(AMPIEZZA_FREQUENZE, ampiezze.sortDesc("ampiezza", FREQ));
-        writeFile(FREQUENZE, freqs);
+        return ampiezze.sortDesc(AMPIEZZA, FREQ);
     }
 
     private PList<Frequenza> leggiFrequenze() {
