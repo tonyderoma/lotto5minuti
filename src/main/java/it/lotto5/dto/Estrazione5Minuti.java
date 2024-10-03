@@ -29,6 +29,8 @@ public class Estrazione5Minuti extends PilotSupport {
     private boolean giocataExtra;
 
     private String msgTrovati = "Trovati: ";
+
+    private String msgTrovatiVincenti = "";
     private String msgTrovatiExtra = "Trovati Extra: ";
 
     private String msgOro = "PRESO ORO ";
@@ -119,7 +121,9 @@ public class Estrazione5Minuti extends PilotSupport {
     private void addTrovati() {
         Integer tr = getQuantiTrovati();
         msgTrovati += str(tr, slash(), safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
-
+        if (getVincitaNormale() > 0) {
+            msgTrovatiVincenti += str(lf(), tabn(6), tr, slash(), safe(getGiocata()).size(), tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(4), getGiocata().concatenaDash(), quadraClose());
+        }
     }
 
     public void impostaTrovati() {
@@ -314,5 +318,13 @@ public class Estrazione5Minuti extends PilotSupport {
 
     public void setVincitaExtra(Integer vincitaExtra) {
         this.vincitaExtra = vincitaExtra;
+    }
+
+    public String getMsgTrovatiVincenti() {
+        return msgTrovatiVincenti;
+    }
+
+    public void setMsgTrovatiVincenti(String msgTrovatiVincenti) {
+        this.msgTrovatiVincenti = msgTrovatiVincenti;
     }
 }

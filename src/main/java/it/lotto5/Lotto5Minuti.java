@@ -733,8 +733,11 @@ public class Lotto5Minuti extends PilotSupport {
         Integer vincite = estrazioni.gt("vincita", 0).find().size();
         log("-------------- VINCENTI ", vincite, slash(), estrazioni.size(), "   ", percentuale(bd(vincite), bd(estrazioni.size())), "%");
         for (Estrazione5Minuti e : estrazioni) {
-            if (e.getVincita() > 0)
-                log(e);
+            if (e.getVincita() > 0) {
+                log("VINCITA:", moneyEuro(bd(e.getVincita())));
+                log(e.getMsgTrovatiVincenti(), lf());
+                //log(e);
+            }
         }
         String output = str(estrazioni.getFirstElement().getDataString(), "   ");
         //log(getTitle("REPORT FINALE", 80, "*"));
@@ -747,7 +750,7 @@ public class Lotto5Minuti extends PilotSupport {
         bilancioFinale = vincitaFinale - spesaFinale;
         output = str(output, "VINCITA: ", money(bd(vincitaTotale)), tab(), "SPESA: ", money(bd(spesaTotale)), tab(), "BILANCIO:", money(bd(vincitaTotale - spesaTotale)));
         appendFile(REPORT, pl(output));
-        log(str(lf(), tabn(5), "VINCITA TOTALE:", money(bd(vincitaTotale)), lf(), tabn(5), "SPESA TOTALE:", money(bd(spesaTotale)), lf(), tabn(5), "BILANCIO:", money(bd(vincitaTotale - spesaTotale))));
+        log(lf(), tabn(5), "VINCITA TOTALE:", moneyEuro(bd(vincitaTotale)), lf(), tabn(5), "SPESA TOTALE:", moneyEuro(bd(spesaTotale)), lf(), tabn(5), "BILANCIO:", moneyEuro(bd(vincitaTotale - spesaTotale)));
         if (almenoUna(oro, doppioOro))
             log(str(lf(), tabn(5), "ORO preso:", oriPresi, " volte"));
         if (doppioOro)
@@ -756,7 +759,7 @@ public class Lotto5Minuti extends PilotSupport {
         int bilancio = vincitaTotale - spesaTotale;
         if (bilancio > 50 && bilancio <= 100) beep(97);
         if (bilancio > 100) beep(300);
-        log("BILANCIO COMPLESSIVO ", estrazioni.getFirstElement().getDataString(), "   VINTI: ", money(bd(vincitaFinale)), "  SPESI: ", money(bd(spesaFinale)), "   BILANCIO:", money(bd(bilancioFinale)));
+        log("BILANCIO COMPLESSIVO ", estrazioni.getFirstElement().getDataString(), "   VINTI: ", moneyEuro(bd(vincitaFinale)), "  SPESI: ", moneyEuro(bd(spesaFinale)), "   BILANCIO:", moneyEuro(bd(bilancioFinale)));
     }
 
     private PList<PList<Integer>> getEstrazioniFibonacci() {
