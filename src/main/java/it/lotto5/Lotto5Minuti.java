@@ -97,7 +97,7 @@ public class Lotto5Minuti extends PilotSupport {
         svuotaFile(AMPIEZZA_FREQUENZE, AMPIEZZA_FREQUENZE_PRECEDENTI, FREQUENZE, FREQUENZE_PRECEDENTI);
         Integer oraStop = 24;
         Integer minutiStop = 00;
-        Integer oraStart = 3;
+        Integer oraStart = 2;
         Integer minutiStart = 30;
         PDate stop = now().ora(oraStop).minuti(minutiStop);
         PDate start = now().ora(oraStart).minuti(minutiStart);
@@ -112,6 +112,7 @@ public class Lotto5Minuti extends PilotSupport {
             if (now().isAfter(stop)) break;
             attendiSecondi(10);
             if (now().getMinuti() % 5 == 0) {
+                log(lfn(2));
                 log("Scattati i 5 minuti ", now().getOraCompleta(), " procedo con l'elaborazione!!!!!");
                 attendiSecondi(10);
                 run();
@@ -143,6 +144,7 @@ public class Lotto5Minuti extends PilotSupport {
             ampiezzePrecedenti = leggiAmpiezze(AMPIEZZA_FREQUENZE_PRECEDENTI);
         }
         PList<Report> report = pl();
+        Parametri p = new Parametri(report, fre, ampiezze);
         PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
         PList<Integer> penultimaEstrazione = estrazioni.get(1).getEstrazione();
         PList<Integer> inComune = estrazioni.getFirstElement().getEstrazione().intersection(penultimaEstrazione);
@@ -168,17 +170,17 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoFrequenzeCasuali(3, fre, report, false);
         //modoGiocoFrequenzeCasuali(3, fre, report, false);
         // modoGiocoTipoFrequenze(ampiezze, report, fre);
-        modoGiocoAmpiezzeBasse(L25, ampiezze, report, fre);
-        modoGiocoAmpiezzeBasse(L25, ampiezze, report, fre, true);
-        modoGiocoAmpiezzePuntuali(L25, pl(2), report, fre, ampiezze, false, true);
-        modoGiocoAmpiezzePuntuali(L25, pl(3), report, fre, ampiezze, false, true);
-        modoGiocoAmpiezzePuntuali(L25, pl(4), report, fre, ampiezze, false, true);
-        modoGiocoAmpiezzePuntuali(L25, pl(5), report, fre, ampiezze, false, true);
+        modoGiocoAmpiezzeBasse(L25, p);
+        modoGiocoAmpiezzeBasse(L25, p, true);
+        modoGiocoAmpiezzePuntuali(L25, pl(2), p, false, true);
+        modoGiocoAmpiezzePuntuali(L25, pl(3), p, false, true);
+        modoGiocoAmpiezzePuntuali(L25, pl(4), p, false, true);
+        modoGiocoAmpiezzePuntuali(L25, pl(5), p, false, true);
         //modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
         //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
         //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
-        giocaResidui(report, 6);
+        //giocaResidui(report, 6);
         printReport(report);
         salvaFrequenze();
     }
@@ -196,39 +198,39 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     //Modo gioco che considera i numeri corrispondenti all'intervallo di ampiezze indicato
-    private void modoGiocoAmpiezzeTra(PList<Integer> lunghezzeAmmesse, Integer minAmp, Integer maxAmp, PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente) throws Exception {
-        PList<Integer> numeri = getNumeriAmpiezzaTra(minAmp, maxAmp, ampiezze, fre, report, togliNumeriEstrazionePrecedente);
+    private void modoGiocoAmpiezzeTra(PList<Integer> lunghezzeAmmesse, Integer minAmp, Integer maxAmp, Parametri p, boolean togliNumeriEstrazionePrecedente) throws Exception {
+        PList<Integer> numeri = getNumeriAmpiezzaTra(minAmp, maxAmp, p, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, lunghezzeAmmesse, 3);
     }
 
-    private void modoGiocoAmpiezzeTra(PList<Integer> lunghezzeAmmesse, Integer minAmp, Integer maxAmp, PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+    private void modoGiocoAmpiezzeTra(PList<Integer> lunghezzeAmmesse, Integer minAmp, Integer maxAmp, Parametri p, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         if (!pariDispari)
-            modoGiocoAmpiezzeTra(lunghezzeAmmesse, minAmp, maxAmp, ampiezze, report, fre, togliNumeriEstrazionePrecedente);
+            modoGiocoAmpiezzeTra(lunghezzeAmmesse, minAmp, maxAmp, p, togliNumeriEstrazionePrecedente);
         else {
             limitaSviluppati = false;
-            PList<Integer> numeri = getNumeriAmpiezzaTra(minAmp, maxAmp, ampiezze, fre, report, togliNumeriEstrazionePrecedente);
+            PList<Integer> numeri = getNumeriAmpiezzaTra(minAmp, maxAmp, p, togliNumeriEstrazionePrecedente);
             giocaNumeriPariDispari(numeri, lunghezzeAmmesse, 1);
             limitaSviluppati = true;
         }
     }
 
     //gioca numeri estratti da frequenze scelte a caso
-    private void modoGiocoFrequenzeCasuali(PList<Integer> lunghezzeAmmesse, Integer quanteFrequenzeCasuali, PList<Frequenza> fre, PList<Report> report, boolean togliNumeriEstrazionePrecedente) throws Exception {
-        PList<Integer> frequenze = fre.narrow(FREQ);
-        modoGiocoFrequenzePuntuali(lunghezzeAmmesse, frequenze.random(quanteFrequenzeCasuali), report, fre, togliNumeriEstrazionePrecedente);
+    private void modoGiocoFrequenzeCasuali(PList<Integer> lunghezzeAmmesse, Integer quanteFrequenzeCasuali, Parametri p, boolean togliNumeriEstrazionePrecedente) throws Exception {
+        PList<Integer> frequenze = p.getFrequenze().narrow(FREQ);
+        modoGiocoFrequenzePuntuali(lunghezzeAmmesse, frequenze.random(quanteFrequenzeCasuali), p, togliNumeriEstrazionePrecedente);
     }
 
-    private void modoGiocoFrequenzeTra(PList<Integer> lunghezzeAmmesse, Integer minFreq, Integer maxFreq, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente) throws Exception {
-        PList<Integer> numeri = getNumeriFrequenzeTra(minFreq, maxFreq, fre, report, togliNumeriEstrazionePrecedente);
+    private void modoGiocoFrequenzeTra(PList<Integer> lunghezzeAmmesse, Integer minFreq, Integer maxFreq, Parametri p, boolean togliNumeriEstrazionePrecedente) throws Exception {
+        PList<Integer> numeri = getNumeriFrequenzeTra(minFreq, maxFreq, p, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, lunghezzeAmmesse, 3);
     }
 
-    private void modoGiocoFrequenzeTra(PList<Integer> lunghezzeAmmesse, Integer minFreq, Integer maxFreq, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+    private void modoGiocoFrequenzeTra(PList<Integer> lunghezzeAmmesse, Integer minFreq, Integer maxFreq, Parametri p, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         if (!pariDispari)
-            modoGiocoFrequenzeTra(lunghezzeAmmesse, minFreq, maxFreq, report, fre, togliNumeriEstrazionePrecedente);
+            modoGiocoFrequenzeTra(lunghezzeAmmesse, minFreq, maxFreq, p, togliNumeriEstrazionePrecedente);
         else {
             limitaSviluppati = false;
-            PList<Integer> numeri = getNumeriFrequenzeTra(minFreq, maxFreq, fre, report, togliNumeriEstrazionePrecedente);
+            PList<Integer> numeri = getNumeriFrequenzeTra(minFreq, maxFreq, p, togliNumeriEstrazionePrecedente);
             giocaNumeriPariDispari(numeri, lunghezzeAmmesse, 1);
             limitaSviluppati = true;
         }
@@ -242,34 +244,34 @@ public class Lotto5Minuti extends PilotSupport {
         return fre.notIn(FREQ, frequenzeGiocate.distinct()).find().sortDesc(FREQ).narrowDistinct(FREQ);
     }
 
-    private void modoGiocoFrequenzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> freqs, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente) throws Exception {
-        PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
+    private void modoGiocoFrequenzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> freqs, Parametri p, boolean togliNumeriEstrazionePrecedente) throws Exception {
+        PList<Integer> numeri = getNumeriFrequenzePuntuali(freqs, p, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, lunghezzeAmmesse, 3);
     }
 
-    private void modoGiocoFrequenzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> freqs, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+    private void modoGiocoFrequenzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> freqs, Parametri p, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         if (!pariDispari)
-            modoGiocoFrequenzePuntuali(lunghezzeAmmesse, freqs, report, fre, togliNumeriEstrazionePrecedente);
+            modoGiocoFrequenzePuntuali(lunghezzeAmmesse, freqs, p, togliNumeriEstrazionePrecedente);
         else {
             limitaSviluppati = false;
-            PList<Integer> numeri = getNumeriFrequenzePuntuali(fre, freqs, report, togliNumeriEstrazionePrecedente);
+            PList<Integer> numeri = getNumeriFrequenzePuntuali(freqs, p, togliNumeriEstrazionePrecedente);
             limitaSviluppati = true;
             giocaNumeriPariDispari(numeri, lunghezzeAmmesse, 1);
         }
     }
 
 
-    private void modoGiocoAmpiezzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> amps, PList<Report> report, PList<Frequenza> fre, PList<Ampiezza> ampiezze, boolean togliNumeriEstrazionePrecedente) throws Exception {
-        PList<Integer> numeri = getNumeriAmpiezzePuntuali(ampiezze, fre, amps, report, togliNumeriEstrazionePrecedente);
+    private void modoGiocoAmpiezzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> amps, Parametri p, boolean togliNumeriEstrazionePrecedente) throws Exception {
+        PList<Integer> numeri = getNumeriAmpiezzePuntuali(amps, p, togliNumeriEstrazionePrecedente);
         giocaNumeri(numeri, lunghezzeAmmesse, 3);
     }
 
-    private void modoGiocoAmpiezzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> amps, PList<Report> report, PList<Frequenza> fre, PList<Ampiezza> ampiezze, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+    private void modoGiocoAmpiezzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> amps, Parametri p, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         if (!pariDispari)
-            modoGiocoAmpiezzePuntuali(lunghezzeAmmesse, amps, report, fre, ampiezze, togliNumeriEstrazionePrecedente);
+            modoGiocoAmpiezzePuntuali(lunghezzeAmmesse, amps, p, togliNumeriEstrazionePrecedente);
         else {
             limitaSviluppati = false;
-            PList<Integer> numeri = getNumeriAmpiezzePuntuali(ampiezze, fre, amps, report, togliNumeriEstrazionePrecedente);
+            PList<Integer> numeri = getNumeriAmpiezzePuntuali(amps, p, togliNumeriEstrazionePrecedente);
             giocaNumeriPariDispari(numeri, lunghezzeAmmesse, 1);
             limitaSviluppati = true;
         }
@@ -277,50 +279,50 @@ public class Lotto5Minuti extends PilotSupport {
 
 
     //Modo gioco che considera i primi numeri al massimo a partire dalle ampiezze 1
-    private void modoGiocoAmpiezzeBasse(PList<Integer> lunghezzeAmmesse, PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre) throws Exception {
-        PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
+    private void modoGiocoAmpiezzeBasse(PList<Integer> lunghezzeAmmesse, Parametri p) throws Exception {
+        PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, p, false);
         giocaNumeri(numeri, lunghezzeAmmesse, 3);
     }
 
-    private void modoGiocoAmpiezzeBasse(PList<Integer> lunghezzeAmmesse, PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre, boolean pariDispari) throws Exception {
-        if (!pariDispari) modoGiocoAmpiezzeBasse(lunghezzeAmmesse, ampiezze, report, fre);
+    private void modoGiocoAmpiezzeBasse(PList<Integer> lunghezzeAmmesse, Parametri p, boolean pariDispari) throws Exception {
+        if (!pariDispari) modoGiocoAmpiezzeBasse(lunghezzeAmmesse, p);
         else {
-            PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, ampiezze, fre, report, false);
+            PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, p, false);
             giocaNumeriPariDispari(numeri, lunghezzeAmmesse, 1);
         }
     }
 
 
     //Modalità di gioco frequenze prolifiche e non
-    private void modoGiocoTipoFrequenze(PList<Integer> lunghezzeAmmesse, PList<Ampiezza> ampiezze, PList<Report> report, PList<Frequenza> fre) throws Exception {
-        PList<Integer> frequenzeNonBuoneSelezionate = ampiezze.eq("quantiIntercettati", 0).gt(AMPIEZZA, 2).find().sort(FREQ).narrow(FREQ);
-        PList<Integer> frequenzeProlifiche = ampiezze.sortDesc("quantiIntercettati").narrow(FREQ);
-        PList<Integer> numeriDaFrequenzeProlifiche = getNumeriFrequenzePuntuali(fre, frequenzeProlifiche.cutToFirst(3), report, false);
-        PList<Integer> numeriDaFrequenzeNonBuone = getNumeriFrequenzePuntuali(fre, frequenzeNonBuoneSelezionate, report, false);
+    private void modoGiocoTipoFrequenze(PList<Integer> lunghezzeAmmesse, Parametri p) throws Exception {
+        PList<Integer> frequenzeNonBuoneSelezionate = p.getAmpiezze().eq("quantiIntercettati", 0).gt(AMPIEZZA, 2).find().sort(FREQ).narrow(FREQ);
+        PList<Integer> frequenzeProlifiche = p.getAmpiezze().sortDesc("quantiIntercettati").narrow(FREQ);
+        PList<Integer> numeriDaFrequenzeProlifiche = getNumeriFrequenzePuntuali(frequenzeProlifiche.cutToFirst(3), p, false);
+        PList<Integer> numeriDaFrequenzeNonBuone = getNumeriFrequenzePuntuali(frequenzeNonBuoneSelezionate, p, false);
         giocaNumeri(numeriDaFrequenzeProlifiche, lunghezzeAmmesse, 3);
         giocaNumeri(numeriDaFrequenzeNonBuone, lunghezzeAmmesse, 3);
     }
 
     //Modalità di gioco per posizione nell'array di frequenze estratte precedente bottom, medium , top
-    private void modoGiocoPosizionale(PList<Integer> frequenzeEstrattePrecedenti, PList<Report> report, PList<Frequenza> fre, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+    private void modoGiocoPosizionale(PList<Integer> frequenzeEstrattePrecedenti, Parametri p, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         Integer quanteFrequenzeDistinte = frequenzeEstrattePrecedenti.size();
         Integer posizioneMedia = quanteFrequenzeDistinte / 2 - 1;
         Integer low = posizioneMedia - 1;
         Integer high = posizioneMedia + 2;
         PList<Integer> intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
-        modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+        modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
 
 
         low = 1;
         high = 3;
         intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
-        modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+        modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
 
 
         low = quanteFrequenzeDistinte - 5;
         high = quanteFrequenzeDistinte - 2;
         intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
-        modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, report, fre, togliNumeriEstrazionePrecedente, pariDispari);
+        modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
     }
 
     private void printReport(PList<Report> report) {
@@ -349,7 +351,7 @@ public class Lotto5Minuti extends PilotSupport {
             totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getExtra());
         report.add(new Report("Residui", totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
         giocaNumeriPariDispari(totaleSviluppati, L25, 1);
-        giocaNumeri(totaleSviluppati, L25, 1);
+        //giocaNumeri(totaleSviluppati, L25, 1);
     }
 
     public PList<Integer> trovaNumeriEstratti(PList<Integer> numeriSviluppati) throws Exception {
@@ -387,10 +389,10 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-    private PList<Integer> getNumeriDaAmpiezzeBasse(Integer quantiNumeriAlMassimo, PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
+    private PList<Integer> getNumeriDaAmpiezzeBasse(Integer quantiNumeriAlMassimo, Parametri p, boolean togliNumeriUltimaEstrazione) throws Exception {
         int contaNumeri = 0;
         PList<Integer> frequenzeTrovate = pl();
-        for (Ampiezza a : ampiezze.sort(AMPIEZZA, FREQ)) {
+        for (Ampiezza a : p.getAmpiezze().sort(AMPIEZZA, FREQ)) {
             contaNumeri += a.getAmpiezza();
             if (contaNumeri > quantiNumeriAlMassimo) break;
             else {
@@ -398,61 +400,61 @@ public class Lotto5Minuti extends PilotSupport {
                     frequenzeTrovate.add(a.getFreq());
             }
         }
-        PList<Integer> numeriSviluppati = fre.in(FREQ, frequenzeTrovate).find().narrowDistinct(NUMERO);
+        PList<Integer> numeriSviluppati = p.getFrequenze().in(FREQ, frequenzeTrovate).find().narrowDistinct(NUMERO);
         if (limitaSviluppati)
             while (numeriSviluppati.size() > maxNumeriSviluppati && frequenzeTrovate.size() > 0) {
                 frequenzeTrovate = frequenzeTrovate.dropLast();
-                numeriSviluppati = fre.in(FREQ, frequenzeTrovate).find().narrowDistinct(NUMERO);
+                numeriSviluppati = p.getFrequenze().in(FREQ, frequenzeTrovate).find().narrowDistinct(NUMERO);
             }
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        report.add(new Report("Ampiezze basse", frequenzeTrovate, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        p.getReport().add(new Report("Ampiezze basse", frequenzeTrovate, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
     }
 
 
-    private PList<Integer> getNumeriAmpiezzaTra(int minAmpiezza, int maxAmpiezza, PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
-        PList<Integer> amps = ampiezze.between(AMPIEZZA, minAmpiezza, maxAmpiezza).find().narrowDistinct(AMPIEZZA);
-        return getNumeriAmpiezzePuntuali(ampiezze, fre, amps, report, togliNumeriUltimaEstrazione);
+    private PList<Integer> getNumeriAmpiezzaTra(int minAmpiezza, int maxAmpiezza, Parametri p, boolean togliNumeriUltimaEstrazione) throws Exception {
+        PList<Integer> amps = p.getAmpiezze().between(AMPIEZZA, minAmpiezza, maxAmpiezza).find().narrowDistinct(AMPIEZZA);
+        return getNumeriAmpiezzePuntuali(amps, p, togliNumeriUltimaEstrazione);
     }
 
 
-    private PList<Integer> getNumeriFrequenzeTra(int minFreq, int maxFreq, PList<Frequenza> fre, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
-        return getNumeriFrequenzePuntuali(fre, fre.between(FREQ, minFreq, maxFreq).find().narrowDistinct(FREQ), report, togliNumeriUltimaEstrazione);
+    private PList<Integer> getNumeriFrequenzeTra(int minFreq, int maxFreq, Parametri p, boolean togliNumeriUltimaEstrazione) throws Exception {
+        return getNumeriFrequenzePuntuali(p.getFrequenze().between(FREQ, minFreq, maxFreq).find().narrowDistinct(FREQ), p, togliNumeriUltimaEstrazione);
     }
 
 
-    private PList<Integer> getNumeriAmpiezzePuntuali(PList<Ampiezza> ampiezze, PList<Frequenza> fre, PList<Integer> amps, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
+    private PList<Integer> getNumeriAmpiezzePuntuali(PList<Integer> amps, Parametri p, boolean togliNumeriUltimaEstrazione) throws Exception {
         if (Null(amps)) return pl();
-        PList<Integer> frequenze = ampiezze.in(AMPIEZZA, amps).find().narrowDistinct(FREQ);
+        PList<Integer> frequenze = p.getAmpiezze().in(AMPIEZZA, amps).find().narrowDistinct(FREQ);
         if (Null(frequenze)) return pl();
-        PList<Integer> numeri = fre.in(FREQ, frequenze).find().narrowDistinct(NUMERO);
+        PList<Integer> numeri = p.getFrequenze().in(FREQ, frequenze).find().narrowDistinct(NUMERO);
         if (limitaSviluppati)
             while (numeri.size() > maxNumeriSviluppati && frequenze.size() > 0) {
                 frequenze = frequenze.dropLast();
-                numeri = fre.in(FREQ, frequenze).find().narrowDistinct(NUMERO);
+                numeri = p.getFrequenze().in(FREQ, frequenze).find().narrowDistinct(NUMERO);
             }
         if (togliNumeriUltimaEstrazione) {
             numeri = numeri.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        report.add(new Report(str("Ampiezze puntuali ", amps.concatenaDash()), frequenze, numeri, trovaNumeriEstratti(numeri)));
+        p.getReport().add(new Report(str("Ampiezze puntuali ", amps.concatenaDash()), frequenze, numeri, trovaNumeriEstratti(numeri)));
         return numeri;
     }
 
 
-    private PList<Integer> getNumeriFrequenzePuntuali(PList<Frequenza> fre, PList<Integer> freqs, PList<Report> report, boolean togliNumeriUltimaEstrazione) throws Exception {
+    private PList<Integer> getNumeriFrequenzePuntuali(PList<Integer> freqs, Parametri p, boolean togliNumeriUltimaEstrazione) throws Exception {
         if (Null(freqs)) return pl();
-        PList<Integer> numeriSviluppati = fre.in(FREQ, freqs).find().narrowDistinct(NUMERO);
+        PList<Integer> numeriSviluppati = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
         if (limitaSviluppati)
             while (numeriSviluppati.size() > maxNumeriSviluppati && freqs.size() > 0) {
                 freqs = freqs.dropLast();
-                numeriSviluppati = fre.in(FREQ, freqs).find().narrowDistinct(NUMERO);
+                numeriSviluppati = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
             }
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        report.add(new Report(str("Frequenze puntuali ", freqs.concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        p.getReport().add(new Report(str("Frequenze puntuali ", freqs.concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
     }
 
@@ -700,7 +702,7 @@ public class Lotto5Minuti extends PilotSupport {
         for (PList<Integer> giocata : giocateMultiple) {
             if (notNull(giocata)) {
                 almenoUnaGiocata = true;
-                log("GIOCATI ", giocata.size(), " NUMERI:", giocata.concatenaDash());
+                //log("GIOCATI ", giocata.size(), " NUMERI:", giocata.concatenaDash());
             }
         }
         if (!almenoUnaGiocata) {
@@ -735,7 +737,7 @@ public class Lotto5Minuti extends PilotSupport {
                 log(e);
         }
         String output = str(estrazioni.getFirstElement().getDataString(), "   ");
-        log(getTitle("REPORT FINALE", 80, "*"));
+        //log(getTitle("REPORT FINALE", 80, "*"));
         //  log("Max Trovati", estrazioni.max("maxTrovati"));
         // log("Max Trovati Extra", estrazioni.max("maxTrovatiExtra"));
         Integer vincitaTotale = estrazioni.sommatoria("vincita", Integer.class);
@@ -847,6 +849,11 @@ public class Lotto5Minuti extends PilotSupport {
                 if (is(a.getFreq(), f.getFreq())) {
                     if (estrazioni.get(j).getEstrazione().contains(f.getNumero()))
                         a.addNumeroIntercettato((f.getNumero()));
+                    if (precedenti) {
+                        if (estrazioni.getFirstElement().getEstrazione().contains(f.getNumero()))
+                            a.addNumeroIntercettatoFuturo(f.getNumero());
+                    }
+
                 }
         }
         return ampiezze.sortDesc(AMPIEZZA, FREQ);
@@ -873,7 +880,8 @@ public class Lotto5Minuti extends PilotSupport {
             Integer frq = getInteger(substring(arr.getFirstElement(), "Frequenza ", false, false, null, false, false));
             Integer ampiezza = getInteger(substring(arr.getLastElement(), null, false, false, tab(), false, true));
             Integer quantiIntercettati = getInteger(substring(arr.getLastElement(), tab(), false, false, space(), false, false));
-            ampiezze.add(new Ampiezza(frq, ampiezza, quantiIntercettati));
+            Integer quantiIntercettatiFuturi = getInteger(substring(arr.getLastElement(), Ampiezza.FUTURI, false, true, colon(), false, true));
+            ampiezze.add(new Ampiezza(frq, ampiezza, quantiIntercettati, quantiIntercettatiFuturi));
         }
         return ampiezze;
     }
