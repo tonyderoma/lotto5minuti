@@ -1,5 +1,6 @@
 package it.lotto5.dto;
 
+import it.eng.pilot.Color;
 import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
 
@@ -44,7 +45,7 @@ public class Report extends PilotSupport {
 
     public String toString() {
         String rapporti = str(intercettati.size(), slash(), sviluppati.size(), tab(), " [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose(), space(2), " [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
-        return str(getTipoGioco(), tab(), rapporti, "   Frequenze:", quadra(), frequenze.sort().concatenaDash(), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", sviluppati.sort().concatenaDash(), "  Intercettati ", intercettati.size(), " numeri: ", intercettati.sort().concatenaDash());
+        return str(getTipoGioco(), tab(), color(rapporti, Color.ROSSO, true, true, false, false), "   Frequenze:", quadra(), color(frequenze.sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
     }
 
     public PList<Integer> getSviluppati() {
@@ -65,7 +66,7 @@ public class Report extends PilotSupport {
 
 
     public String getTipoGioco() {
-        return tipoGioco;
+        return color(tipoGioco, Color.BIANCO, false, true, false, false);
     }
 
     public void setTipoGioco(String tipoGioco) {

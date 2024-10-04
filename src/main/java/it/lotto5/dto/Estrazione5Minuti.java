@@ -1,5 +1,6 @@
 package it.lotto5.dto;
 
+import it.eng.pilot.Color;
 import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
 
@@ -118,11 +119,29 @@ public class Estrazione5Minuti extends PilotSupport {
         return intersection(getEstrazione(), getGiocata()).size();
     }
 
+    private String ok(String s) {
+        return color(s, Color.ROSSO_CORNICE, true, true, false, false);
+    }
+
+    private String nok(String s) {
+        return color(s, Color.BIANCO, false, false, false, true);
+    }
+
+
+    private String getColored(PList<Integer> interc) {
+        String s = "";
+        for (Integer i : getGiocata()) {
+            s += str(interc.indexOf(i) > -1 ? ok(i.toString()) : nok(i.toString()), dash());
+        }
+        return s.substring(0, s.length() - 1);
+    }
+
     private void addTrovati() {
+        PList<Integer> intercettati = pl(intersection(getEstrazione(), getGiocata()));
         Integer tr = getQuantiTrovati();
         msgTrovati += str(tr, slash(), safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
         if (getVincitaNormale() > 0) {
-            msgTrovatiVincenti += str(lf(), tabn(6), tr, slash(), safe(getGiocata()).size(), tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(4), getGiocata().concatenaDash(), quadraClose());
+            msgTrovatiVincenti += str(lf(), tabn(6), tr, slash(), safe(getGiocata()).size(), tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(3), getColored(intercettati), quadraClose());
         }
     }
 

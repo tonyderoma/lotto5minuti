@@ -1,5 +1,6 @@
 package it.lotto5;
 
+import it.eng.pilot.Color;
 import it.eng.pilot.PDate;
 import it.eng.pilot.PList;
 import it.eng.pilot.PilotSupport;
@@ -97,7 +98,7 @@ public class Lotto5Minuti extends PilotSupport {
         svuotaFile(AMPIEZZA_FREQUENZE, AMPIEZZA_FREQUENZE_PRECEDENTI, FREQUENZE, FREQUENZE_PRECEDENTI);
         Integer oraStop = 24;
         Integer minutiStop = 00;
-        Integer oraStart = 2;
+        Integer oraStart = 02;
         Integer minutiStart = 30;
         PDate stop = now().ora(oraStop).minuti(minutiStop);
         PDate start = now().ora(oraStart).minuti(minutiStart);
@@ -180,10 +181,11 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
         //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
-        //giocaResidui(report, 6);
+        //giocaResidui(report, 8);
         printReport(report);
         salvaFrequenze();
     }
+
 
     private PList<Integer> calcolaFrequenzeEstratte(PList<Frequenza> fre, PList<Integer> estrazione) throws Exception {
         PList<Integer> frequenzeEstratte = pl();
@@ -336,7 +338,8 @@ public class Lotto5Minuti extends PilotSupport {
         }
         totaleIntercettati = totaleIntercettati.distinct();
         totaleSviluppati = totaleSviluppati.distinct();
-        System.out.println(str(totaleIntercettati.size(), slash(), totaleSviluppati.size(), tab(), "Intercettati:", totaleIntercettati.sort().concatenaDash(), "  Sviluppati:", totaleSviluppati.sort().concatenaDash()));
+        String s = str("Complessivamente: ", rosso(str(totaleIntercettati.size(), slash(), totaleSviluppati.size())), tab(), "Intercettati:", verde(totaleIntercettati.sort().concatenaDash()), "  Sviluppati:", bianco(totaleSviluppati.sort().concatenaDash()));
+        System.out.println(s);
         log(lf());
     }
 
@@ -347,8 +350,9 @@ public class Lotto5Minuti extends PilotSupport {
             totaleSviluppati.addAll((r.getSviluppati()));
         }
         totaleSviluppati = totaleSviluppati.distinct();
+        PList<Integer> fib = getFibonacci();
         while (totaleSviluppati.size() > quantiResidui)
-            totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getExtra());
+            totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getEstrazione().random(9));
         report.add(new Report("Residui", totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
         giocaNumeriPariDispari(totaleSviluppati, L25, 1);
         //giocaNumeri(totaleSviluppati, L25, 1);
@@ -734,7 +738,7 @@ public class Lotto5Minuti extends PilotSupport {
         log("-------------- VINCENTI ", vincite, slash(), estrazioni.size(), "   ", percentuale(bd(vincite), bd(estrazioni.size())), "%");
         for (Estrazione5Minuti e : estrazioni) {
             if (e.getVincita() > 0) {
-                log("VINCITA:", moneyEuro(bd(e.getVincita())));
+                log("VINCITA:", verde(moneyEuro(bd(e.getVincita()))));
                 log(e.getMsgTrovatiVincenti(), lf());
                 //log(e);
             }
@@ -750,7 +754,8 @@ public class Lotto5Minuti extends PilotSupport {
         bilancioFinale = vincitaFinale - spesaFinale;
         output = str(output, "VINCITA: ", money(bd(vincitaTotale)), tab(), "SPESA: ", money(bd(spesaTotale)), tab(), "BILANCIO:", money(bd(vincitaTotale - spesaTotale)));
         appendFile(REPORT, pl(output));
-        log(lf(), tabn(5), "VINCITA TOTALE:", moneyEuro(bd(vincitaTotale)), lf(), tabn(5), "SPESA TOTALE:", moneyEuro(bd(spesaTotale)), lf(), tabn(5), "BILANCIO:", moneyEuro(bd(vincitaTotale - spesaTotale)));
+        Integer bl = vincitaTotale - spesaTotale;
+        log(lf(), tabn(5), "VINCITA TOTALE:", verde(moneyEuro(bd(vincitaTotale))), lf(), tabn(5), "SPESA TOTALE:", rosso(moneyEuro(bd(spesaTotale))), lf(), tabn(5), "BILANCIO:", bl >= 0 ? verde(moneyEuro(bd(bl))) : rosso(moneyEuro(bd(bl))));
         if (almenoUna(oro, doppioOro))
             log(str(lf(), tabn(5), "ORO preso:", oriPresi, " volte"));
         if (doppioOro)
@@ -759,7 +764,20 @@ public class Lotto5Minuti extends PilotSupport {
         int bilancio = vincitaTotale - spesaTotale;
         if (bilancio > 50 && bilancio <= 100) beep(97);
         if (bilancio > 100) beep(300);
-        log("BILANCIO COMPLESSIVO ", estrazioni.getFirstElement().getDataString(), "   VINTI: ", moneyEuro(bd(vincitaFinale)), "  SPESI: ", moneyEuro(bd(spesaFinale)), "   BILANCIO:", moneyEuro(bd(bilancioFinale)));
+        log("BILANCIO COMPLESSIVO ", estrazioni.getFirstElement().getDataString(), "   VINTI: ", moneyEuro(bd(vincitaFinale)), "  SPESI: ", moneyEuro(bd(spesaFinale)), "   BILANCIO:", bilancioFinale >= 0 ? verde(moneyEuro(bd(bilancioFinale))) : rosso(moneyEuro(bd(bilancioFinale))));
+    }
+
+
+    private String verde(String s) {
+        return color(s, Color.VERDE, true, true, false, false);
+    }
+
+    private String rosso(String s) {
+        return color(s, Color.ROSSO, true, true, false, false);
+    }
+
+    private String bianco(String s) {
+        return color(s, Color.BIANCO_CORNICE_VUOTO, true, true, false, false);
     }
 
     private PList<PList<Integer>> getEstrazioniFibonacci() {
