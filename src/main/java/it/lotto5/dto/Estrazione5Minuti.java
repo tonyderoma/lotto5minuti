@@ -37,6 +37,8 @@ public class Estrazione5Minuti extends PilotSupport {
     private String msgOro = "PRESO ORO ";
     private String msgDoppioOro = "PRESO DOPPIO ORO ";
 
+    private String tipoGiocata = "";
+
     public Estrazione5Minuti(String row) {
         String nums = substring(row, tab(), false, false, tab2(), false, true);
         String ori = substring(row, tab2(), false, true, null, false, false);
@@ -141,7 +143,7 @@ public class Estrazione5Minuti extends PilotSupport {
         Integer tr = getQuantiTrovati();
         msgTrovati += str(tr, slash(), safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
         if (getVincitaNormale() > 0) {
-            msgTrovatiVincenti += str(lf(), tabn(6), tr, slash(), safe(getGiocata()).size(), tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(3), getColored(intercettati), quadraClose());
+            msgTrovatiVincenti += str(lf(), tabn(6), color(getTipoGiocata(), Color.BIANCO, true, true, false, false), tab(), tr, slash(), safe(getGiocata()).size(), tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(3), getColored(intercettati), quadraClose());
         }
     }
 
@@ -345,5 +347,13 @@ public class Estrazione5Minuti extends PilotSupport {
 
     public void setMsgTrovatiVincenti(String msgTrovatiVincenti) {
         this.msgTrovatiVincenti = msgTrovatiVincenti;
+    }
+
+    public String getTipoGiocata() {
+        return tipoGiocata;
+    }
+
+    public void setTipoGiocata(String tipoGiocata) {
+        this.tipoGiocata = tipoGiocata;
     }
 }
