@@ -89,8 +89,8 @@ public class Lotto5Minuti extends PilotSupport {
         loadEstrazioni();
         elaboraFrequenze();
         execute();
-        stampaCadenze();
-        stampaConsecutivi();
+        stampaCadenze(4);
+        stampaConsecutivi(6);
     }
 
 
@@ -181,7 +181,8 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
         //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
-        //giocaResidui(report, 8);
+        giocaResidui(report, 10);
+        modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
         printReport(report);
         salvaFrequenze();
     }
@@ -284,6 +285,32 @@ public class Lotto5Minuti extends PilotSupport {
     private void modoGiocoAmpiezzeBasse(PList<Integer> lunghezzeAmmesse, Parametri p) throws Exception {
         PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, p, false);
         giocaNumeri(numeri, lunghezzeAmmesse, 3);
+    }
+
+    private void modoGiocoCadenze(PList<Integer> cadenzeAmmesse, Parametri p) throws Exception {
+        PList<Integer> totaleSviluppati = pl();
+        for (Report r : p.getReport()) {
+            totaleSviluppati.addAll((r.getSviluppati()));
+        }
+        cadenzeAmmesse.forEach(c -> {
+            PList<Integer> cadenze = generaCadenze(c, totaleSviluppati.distinct());
+            p.getReport().add(new Report("Cadenze", cadenze, pl(intersection(cadenze, estrazioni.getFirstElement().getEstrazione()))));
+            giocaNumeri(cadenze, L24, 1);
+        });
+    }
+
+    private PList<Integer> generaCadenze(Integer n, PList<Integer> sviluppati) {
+        PList<Integer> cad = pl();
+        sviluppati.forEach(i -> {
+            if (isCadenza(i, n)) cad.add(i);
+        });
+
+        return cad;
+    }
+
+
+    private boolean isCadenza(Integer n, Integer cadenza) {
+        return zero((n - cadenza) % 10);
     }
 
     private void modoGiocoAmpiezzeBasse(PList<Integer> lunghezzeAmmesse, Parametri p, boolean pariDispari) throws Exception {
@@ -755,7 +782,7 @@ public class Lotto5Minuti extends PilotSupport {
         output = str(output, "VINCITA: ", money(bd(vincitaTotale)), tab(), "SPESA: ", money(bd(spesaTotale)), tab(), "BILANCIO:", money(bd(vincitaTotale - spesaTotale)));
         appendFile(REPORT, pl(output));
         Integer bl = vincitaTotale - spesaTotale;
-        log(lf(), tabn(5), "VINCITA TOTALE:", verde(moneyEuro(bd(vincitaTotale))), lf(), tabn(5), "SPESA TOTALE:", rosso(moneyEuro(bd(spesaTotale))), lf(), tabn(5), "BILANCIO:", bl >= 0 ? verde(moneyEuro(bd(bl))) : rosso(moneyEuro(bd(bl))));
+        log(lf(), tabn(5), "VINCITA TOTALE:", verde(moneyEuro(bd(vincitaTotale))), lf(), tabn(5), "SPESA TOTALE:", moneyEuro(bd(spesaTotale)), lf(), tabn(5), "BILANCIO:", bl >= 0 ? verde(moneyEuro(bd(bl))) : rosso(moneyEuro(bd(bl))));
         if (almenoUna(oro, doppioOro))
             log(str(lf(), tabn(5), "ORO preso:", oriPresi, " volte"));
         if (doppioOro)
@@ -908,20 +935,20 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-    private void stampaCadenze() {
+    private void stampaCadenze(Integer almeno) {
         for (Estrazione5Minuti e : safe(estrazioni)) {
-            String cad = e.getCadenze(6);
+            String cad = e.getCadenze(almeno);
             if (Null(cad)) continue;
             log(cad);
         }
     }
 
-    private void stampaConsecutivi() {
+    private void stampaConsecutivi(Integer almeno) {
         for (Estrazione5Minuti e : safe(estrazioni)) {
-            PList<PList<Integer>> consecutivi = e.getConsecutivi(6);
+            PList<PList<Integer>> consecutivi = e.getConsecutivi(almeno);
             if (Null(consecutivi)) continue;
             for (PList<Integer> cons : consecutivi)
-                log(e.getDataString(), "Consecutivi: ", cons.concatenaDash());
+                log(e.getDataString(), "Consecutivi: ", color(cons.concatenaDash(), Color.VIOLA_CORNICE, true, true, false, false));
         }
     }
 

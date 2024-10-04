@@ -120,7 +120,7 @@ public class Estrazione5Minuti extends PilotSupport {
     }
 
     private String ok(String s) {
-        return color(s, Color.ROSSO_CORNICE, true, true, false, false);
+        return color(s, Color.VERDE_CORNICE, true, true, false, false);
     }
 
     private String nok(String s) {
@@ -295,7 +295,7 @@ public class Estrazione5Minuti extends PilotSupport {
                 }
             }
             if (sottoEstrazione.size() >= almeno) {
-                cad = str(cad, getDataString(), "   Cadenza: ", i, ":   ", sottoEstrazione.concatenaDash(), lf());
+                cad = str(cad, getDataString(), "   Cadenza ", i, ":   ", color(sottoEstrazione.concatenaDash(), Color.VIOLA_CORNICE, true, true, false, false), lf());
             }
         }
         return cad;
