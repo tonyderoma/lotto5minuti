@@ -44,9 +44,18 @@ public class Report extends PilotSupport {
     }
 
     public String toString() {
-        String rapporti = str(intercettati.size(), slash(), sviluppati.size(), tab(), " [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose(), space(2), " [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
-        return str(getTipoGioco(), tab(), color(rapporti, Color.ROSSO, true, true, false, false), "   Frequenze:", quadra(), color(frequenze.sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
+        String rapporto = str(intercettati.size(), slash(), sviluppati.size());
+        String rapportoPari = str(" [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose());
+        String rapportoDispari = str(" [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
+        String rapporti = str(impostaColore(intercettati.size(), rapporto), impostaColore(intercettati.pari().size(), rapportoPari), space(2), impostaColore(intercettati.dispari().size(), rapportoDispari));
+        return str(getTipoGioco(), tab(), rapporti, "   Frequenze:", quadra(), color(frequenze.sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
     }
+
+
+    private String impostaColore(Integer n, String s) {
+        return n >= 2 ? verde(s) : rosso(s);
+    }
+
 
     public PList<Integer> getSviluppati() {
         return sviluppati;
@@ -71,5 +80,17 @@ public class Report extends PilotSupport {
 
     public void setTipoGioco(String tipoGioco) {
         this.tipoGioco = tipoGioco;
+    }
+
+    private String verde(String s) {
+        return color(s, Color.VERDE, true, true, false, false);
+    }
+
+    private String rosso(String s) {
+        return color(s, Color.ROSSO, true, true, false, false);
+    }
+
+    private String bianco(String s) {
+        return color(s, Color.BIANCO_CORNICE_VUOTO, true, true, false, false);
     }
 }

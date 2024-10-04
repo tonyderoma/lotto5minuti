@@ -368,7 +368,7 @@ public class Lotto5Minuti extends PilotSupport {
         }
         totaleIntercettati = totaleIntercettati.distinct();
         totaleSviluppati = totaleSviluppati.distinct();
-        String s = str("Totale: ", rosso(str(totaleIntercettati.size(), slash(), totaleSviluppati.size())), tab(), "Intercettati:", verde(totaleIntercettati.sort().concatenaDash()), "  Sviluppati:", bianco(totaleSviluppati.sort().concatenaDash()));
+        String s = str("Totale: ", giallo(str(totaleIntercettati.size(), slash(), totaleSviluppati.size())), tab(), "Intercettati:", verde(totaleIntercettati.sort().concatenaDash()), "  Sviluppati:", bianco(totaleSviluppati.sort().concatenaDash()));
         System.out.println(s);
         log(lf());
     }
@@ -819,6 +819,10 @@ public class Lotto5Minuti extends PilotSupport {
 
     private String rosso(String s) {
         return color(s, Color.ROSSO, true, true, false, false);
+    }
+
+    private String giallo(String s) {
+        return color(s, Color.GIALLO, true, true, false, false);
     }
 
     private String bianco(String s) {
