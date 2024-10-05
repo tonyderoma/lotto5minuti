@@ -148,7 +148,7 @@ public class Lotto5Minuti extends PilotSupport {
             ampiezzePrecedenti = leggiAmpiezze(AMPIEZZA_FREQUENZE_PRECEDENTI);
         }
         PList<Report> report = pl();
-        Parametri p = new Parametri(report, fre, ampiezze);
+        Parametri p = new Parametri(report, frequenzePrecedenti, ampiezzePrecedenti);
         PList<Integer> ultimaEstrazione = estrazioni.getFirstElement().getEstrazione();
         PList<Integer> penultimaEstrazione = estrazioni.get(1).getEstrazione();
         PList<Integer> inComune = estrazioni.getFirstElement().getEstrazione().intersection(penultimaEstrazione);
@@ -184,8 +184,9 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
         //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
-        giocaResidui(report, 10);
+        giocaResidui(report, 14);
         modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
+        modoGiocoAmpiezzeAlte(L25, p);
         printReport(report);
         salvaFrequenze();
     }
@@ -289,6 +290,15 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> numeri = getNumeriDaAmpiezzeBasse(6, p, false);
         giocaNumeri(TipoGiocata.AMPIEZZE_BASSE, numeri, lunghezzeAmmesse, 3);
     }
+
+    private void modoGiocoAmpiezzeAlte(PList<Integer> lunghezzeAmmesse, Parametri p) throws Exception {
+        PList<Integer> freqs = p.getAmpiezze().gt(AMPIEZZA, 6).find().narrowDistinct(FREQ);
+        freqs = freqs.random(2);
+        PList<Integer> numeri = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
+        p.getReport().add(new Report("Ampiezze alte", freqs, numeri, trovaNumeriEstratti(numeri)));
+        giocaNumeriPariDispari(TipoGiocata.AMPIEZZE_ALTE, numeri, lunghezzeAmmesse, 1);
+    }
+
 
     private void modoGiocoCadenze(PList<Integer> cadenzeAmmesse, Parametri p) throws Exception {
         PList<Integer> totaleSviluppati = pl();
