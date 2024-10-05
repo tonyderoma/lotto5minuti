@@ -187,7 +187,7 @@ public class Lotto5Minuti extends PilotSupport {
         giocaResidui(p, 14);
         modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
         modoGiocoAmpiezzeAlte(L25, p);
-        printReport(report);
+        printReport(p);
         salvaFrequenze();
     }
 
