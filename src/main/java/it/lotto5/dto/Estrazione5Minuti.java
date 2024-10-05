@@ -143,7 +143,11 @@ public class Estrazione5Minuti extends PilotSupport {
         Integer tr = getQuantiTrovati();
         msgTrovati += str(tr, slash(), safe(getGiocata()).size(), getVincitaNormale() > 0 ? " [" + money(bd(getVincitaNormale())) + space() + getGiocata().concatenaDash() + "]  " : "  ");
         if (getVincitaNormale() > 0) {
-            msgTrovatiVincenti += str(lf(), tabn(6), color(getTipoGiocata(), Color.BIANCO, true, true, false, false), tab(), tr, slash(), safe(getGiocata()).size(), tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(3), getColored(intercettati), quadraClose());
+            String rapp = str(tr, slash(), safe(getGiocata()).size());
+            if (tr.equals(getGiocata().size())) {
+                rapp = ok(rapp);
+            }
+            msgTrovatiVincenti += str(lf(), tabn(6), color(getTipoGiocata(), Color.BIANCO, true, true, false, false), tab(), rapp, tab(), quadra(), moneyEuro(bd(getVincitaNormale())), space(3), getColored(intercettati), quadraClose());
         }
     }
 

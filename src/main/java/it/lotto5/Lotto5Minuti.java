@@ -25,6 +25,8 @@ public class Lotto5Minuti extends PilotSupport {
     public static final String AMPIEZZA_FREQUENZE = "ampiezzaFrequenze.txt";
     public static final String AMPIEZZA_FREQUENZE_PRECEDENTI = "ampiezzaFrequenzePrecedenti.txt";
 
+    public static final String AMPIEZZA_FREQUENZE_PRECEDENTI_PRE = "ampiezzaFrequenzePrecedentiPreElaborazione.txt";
+
     public static final String REPORT = "REPORT.TXT";
 
     public static final Integer maxNumeriSviluppati = 12;
@@ -97,7 +99,7 @@ public class Lotto5Minuti extends PilotSupport {
 
 
     private void autorun() throws Exception {
-        svuotaFile(AMPIEZZA_FREQUENZE, AMPIEZZA_FREQUENZE_PRECEDENTI, FREQUENZE, FREQUENZE_PRECEDENTI);
+        svuotaFile(AMPIEZZA_FREQUENZE, AMPIEZZA_FREQUENZE_PRECEDENTI, FREQUENZE, FREQUENZE_PRECEDENTI, AMPIEZZA_FREQUENZE_PRECEDENTI_PRE);
         Integer oraStop = 24;
         Integer minutiStop = 00;
         Integer oraStart = 02;
@@ -872,11 +874,9 @@ public class Lotto5Minuti extends PilotSupport {
         return fb;
     }
 
-    private PList<Frequenza> calcolaFrequenze(boolean precedenti) throws Exception {
-        int j = 0;
-        if (precedenti) j = 1;
+    private PList<Frequenza> calcolaFrequenze(Integer partiDa) throws Exception {
         Map<Integer, Integer> frequenze = new HashMap<>();
-        for (int i = j; i < estrazioni.size(); i++) {
+        for (int i = partiDa; i < estrazioni.size(); i++) {
             Estrazione5Minuti e = estrazioni.get(i);
             for (Integer n : safe(e.getEstrazione())) {
                 if (Null(frequenze.get(n))) {
@@ -894,37 +894,37 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void salvaFrequenze() throws Exception {
-        PList<Frequenza> freqsPrecedenti = calcolaFrequenze(true);
-        PList<Frequenza> freqs = calcolaFrequenze(false);
+        PList<Frequenza> freqsPrecedenti = calcolaFrequenze(1);
+        PList<Frequenza> freqs = calcolaFrequenze(0);
 
-        writeFile(AMPIEZZA_FREQUENZE, calcolaAmpiezze(freqs, false));
-        writeFile(AMPIEZZA_FREQUENZE_PRECEDENTI, calcolaAmpiezze(freqsPrecedenti, true));
+        writeFile(AMPIEZZA_FREQUENZE, calcolaAmpiezze(freqs));
+        writeFile(AMPIEZZA_FREQUENZE_PRECEDENTI, calcolaAmpiezze(freqsPrecedenti));
         writeFile(FREQUENZE, freqs);
         writeFile(FREQUENZE_PRECEDENTI, freqsPrecedenti);
     }
 
-    private PList<Ampiezza> calcolaAmpiezze(PList<Frequenza> freqs, boolean precedenti) throws Exception {
+    private PList<Ampiezza> calcolaAmpiezze(PList<Frequenza> freqs) throws Exception {
         PList<Ampiezza> ampiezze = pl();
-        int j = 0;
-        if (precedenti) j = 1;
+
         Map<Integer, PList<Frequenza>> mappa = freqs.groupBy(FREQ);
         for (Map.Entry<Integer, PList<Frequenza>> entry : mappa.entrySet()) {
             ampiezze.add(new Ampiezza(entry.getKey(), entry.getValue().size()));
         }
-        for (Ampiezza a : ampiezze) {
-            for (Frequenza f : freqs)
-                if (is(a.getFreq(), f.getFreq())) {
-                    if (estrazioni.get(j).getEstrazione().contains(f.getNumero()))
-                        a.addNumeroIntercettato((f.getNumero()));
-                    if (precedenti) {
-                        if (estrazioni.getFirstElement().getEstrazione().contains(f.getNumero()))
-                            a.addNumeroIntercettatoFuturo(f.getNumero());
-                    }
 
+
+        freqs.forEach((f) -> {
+            if (estrazioni.getFirstElement().getEstrazione().contains(f.getNumero())) {
+                try {
+                    ampiezze.eq(FREQ, f.getFreq()).findOne().addNumeroIntercettato(f.getNumero());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-        }
+            }
+
+        });
         return ampiezze.sortDesc(AMPIEZZA, FREQ);
     }
+
 
     private PList<Frequenza> leggiFrequenze(String file) {
         PList<String> cont = readFile(file);
@@ -947,8 +947,8 @@ public class Lotto5Minuti extends PilotSupport {
             Integer frq = getInteger(substring(arr.getFirstElement(), "Frequenza ", false, false, null, false, false));
             Integer ampiezza = getInteger(substring(arr.getLastElement(), null, false, false, tab(), false, true));
             Integer quantiIntercettati = getInteger(substring(arr.getLastElement(), tab(), false, false, space(), false, false));
-            Integer quantiIntercettatiFuturi = getInteger(substring(arr.getLastElement(), Ampiezza.FUTURI, false, true, colon(), false, true));
-            ampiezze.add(new Ampiezza(frq, ampiezza, quantiIntercettati, quantiIntercettatiFuturi));
+            //Integer quantiIntercettatiFuturi = getInteger(substring(arr.getLastElement(), Ampiezza.FUTURI, false, true, colon(), false, true));
+            ampiezze.add(new Ampiezza(frq, ampiezza, quantiIntercettati));
         }
         return ampiezze;
     }
