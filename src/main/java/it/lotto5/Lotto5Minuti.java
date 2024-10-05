@@ -184,7 +184,7 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> frequenzeResidue = ampiezze.in(FREQ, calcolaFrequenzeResidue(report, fre)).between(AMPIEZZA, 3, 5).find().narrowDistinct(FREQ);
         //modoGiocoFrequenzePuntuali(frequenzeResidue, report, fre, false, true);
         //modoGiocoExtraRandom(5, report);
-        giocaResidui(report, 14);
+        giocaResidui(p, 14);
         modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
         modoGiocoAmpiezzeAlte(L25, p);
         printReport(report);
@@ -364,33 +364,23 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoFrequenzePuntuali(L36, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
     }
 
-    private void printReport(PList<Report> report) {
+    private void printReport(Parametri p) {
         log(lf());
-        report.forEach(System.out::println);
-        PList<Integer> totaleIntercettati = pl();
-        PList<Integer> totaleSviluppati = pl();
-        for (Report r : report) {
-            totaleIntercettati.addAll(r.getIntercettati());
-            totaleSviluppati.addAll((r.getSviluppati()));
-        }
-        totaleIntercettati = totaleIntercettati.distinct();
-        totaleSviluppati = totaleSviluppati.distinct();
+        p.getReport().forEach(System.out::println);
+        PList<Integer> totaleIntercettati = p.getTotaleIntercettati();
+        PList<Integer> totaleSviluppati = p.getTotaleSviluppati();
         String s = str("Totale: ", giallo(str(totaleIntercettati.size(), slash(), totaleSviluppati.size())), tab(), "Intercettati:", verde(totaleIntercettati.sort().concatenaDash()), "  Sviluppati:", bianco(totaleSviluppati.sort().concatenaDash()));
         System.out.println(s);
         log(lf());
     }
 
 
-    private void giocaResidui(PList<Report> report, Integer quantiResidui) throws Exception {
-        PList<Integer> totaleSviluppati = pl();
-        for (Report r : report) {
-            totaleSviluppati.addAll((r.getSviluppati()));
-        }
-        totaleSviluppati = totaleSviluppati.distinct();
+    private void giocaResidui(Parametri p, Integer quantiResidui) throws Exception {
+        PList<Integer> totaleSviluppati = p.getTotaleSviluppati();
         PList<Integer> fib = getFibonacci();
         while (totaleSviluppati.size() > quantiResidui)
             totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getEstrazione().random(9));
-        report.add(new Report(TipoGiocata.RESIDUI.getTipo(), totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
+        p.getReport().add(new Report(TipoGiocata.RESIDUI.getTipo(), totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
         giocaNumeriPariDispari(TipoGiocata.RESIDUI, totaleSviluppati, L25, 1);
         //giocaNumeri(totaleSviluppati, L25, 1);
     }

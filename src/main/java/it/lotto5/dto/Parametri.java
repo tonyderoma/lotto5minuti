@@ -48,4 +48,13 @@ public class Parametri extends PilotSupport {
         }
         return totaleSviluppati.distinct();
     }
+
+    public PList<Integer> getTotaleIntercettati() {
+        PList<Integer> totaleIntercettati = pl();
+        for (Report r : getReport()) {
+            totaleIntercettati.addAll(r.getIntercettati());
+        }
+        return totaleIntercettati.distinct();
+    }
+
 }
