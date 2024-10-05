@@ -40,4 +40,12 @@ public class Parametri extends PilotSupport {
     public void setAmpiezze(PList<Ampiezza> ampiezze) {
         this.ampiezze = ampiezze;
     }
+
+    public PList<Integer> getTotaleSviluppati() {
+        PList<Integer> totaleSviluppati = pl();
+        for (Report r : getReport()) {
+            totaleSviluppati.addAll((r.getSviluppati()));
+        }
+        return totaleSviluppati.distinct();
+    }
 }

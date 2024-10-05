@@ -295,20 +295,16 @@ public class Lotto5Minuti extends PilotSupport {
         TipoGiocata g = TipoGiocata.AMPIEZZE_ALTE;
         PList<Integer> freqs = p.getAmpiezze().gt(AMPIEZZA, 6).find().random(2).narrowDistinct(FREQ);
         PList<Integer> numeri = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
-        p.getReport().add(new Report(g.toString(), freqs, numeri, trovaNumeriEstratti(numeri)));
+        p.getReport().add(new Report(g.getTipo(), freqs, numeri, trovaNumeriEstratti(numeri)));
         giocaNumeriPariDispari(g, numeri, lunghezzeAmmesse, 1);
     }
 
 
     private void modoGiocoCadenze(PList<Integer> cadenzeAmmesse, Parametri p) throws Exception {
         TipoGiocata g = TipoGiocata.CADENZE;
-        PList<Integer> totaleSviluppati = pl();
-        for (Report r : p.getReport()) {
-            totaleSviluppati.addAll((r.getSviluppati()));
-        }
         cadenzeAmmesse.forEach(c -> {
-            PList<Integer> cadenze = generaCadenze(c, totaleSviluppati.distinct());
-            p.getReport().add(new Report(g.toString() + c, cadenze, pl(intersection(cadenze, estrazioni.getFirstElement().getEstrazione()))));
+            PList<Integer> cadenze = generaCadenze(c, p.getTotaleSviluppati());
+            p.getReport().add(new Report(g.getTipo() + c, cadenze, pl(intersection(cadenze, estrazioni.getFirstElement().getEstrazione()))));
             giocaNumeri(g, cadenze, L24, 1);
         });
     }
@@ -394,7 +390,7 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> fib = getFibonacci();
         while (totaleSviluppati.size() > quantiResidui)
             totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getEstrazione().random(9));
-        report.add(new Report(TipoGiocata.RESIDUI.toString(), totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
+        report.add(new Report(TipoGiocata.RESIDUI.getTipo(), totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
         giocaNumeriPariDispari(TipoGiocata.RESIDUI, totaleSviluppati, L25, 1);
         //giocaNumeri(totaleSviluppati, L25, 1);
     }
@@ -409,7 +405,7 @@ public class Lotto5Minuti extends PilotSupport {
         }
         for (int i = 1; i <= quantePerLunghezza; i++) {
             lunghezzeGiocate.forEach(l -> {
-                addGiocata(tipoGiocata.toString(), numeri.random(l));
+                addGiocata(tipoGiocata.getTipo(), numeri.random(l));
                 giocateMultiple.add(numeri.random(l));
             });
         }
@@ -429,7 +425,7 @@ public class Lotto5Minuti extends PilotSupport {
             PList<Integer> es2 = pl(estrazioni.get(ultima.randomOne()).getExtra().subList(3, 5));
             PList<Integer> es3 = pl(estrazioni.get(ultima.randomOne()).getExtra().subList(6, 8));
             PList<Integer> totale = pl(es1.aggiungiList(es2, es3));
-            report.add(new Report(TipoGiocata.EXTRA_RANDOM.toString(), totale, trovaNumeriEstratti(totale)));
+            report.add(new Report(TipoGiocata.EXTRA_RANDOM.getTipo(), totale, trovaNumeriEstratti(totale)));
             giocaNumeri(TipoGiocata.EXTRA_RANDOM, totale.distinct(), pl(3, 4, 5, 6), 1);
             giocaNumeriPariDispari(TipoGiocata.EXTRA_RANDOM, totale.distinct(), pl(3, 4), 1);
         }
@@ -462,7 +458,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        p.getReport().add(new Report(TipoGiocata.AMPIEZZE_BASSE.toString(), frequenzeTrovate, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        p.getReport().add(new Report(TipoGiocata.AMPIEZZE_BASSE.getTipo(), frequenzeTrovate, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
     }
 
@@ -491,7 +487,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (togliNumeriUltimaEstrazione) {
             numeri = numeri.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        p.getReport().add(new Report(str(TipoGiocata.AMPIEZZE_PUNTUALI.toString(), amps.concatenaDash()), frequenze, numeri, trovaNumeriEstratti(numeri)));
+        p.getReport().add(new Report(str(TipoGiocata.AMPIEZZE_PUNTUALI.getTipo(), amps.concatenaDash()), frequenze, numeri, trovaNumeriEstratti(numeri)));
         return numeri;
     }
 
@@ -507,7 +503,7 @@ public class Lotto5Minuti extends PilotSupport {
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        p.getReport().add(new Report(str(TipoGiocata.FREQUENZE_PUNTUALI.toString(), freqs.concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        p.getReport().add(new Report(str(TipoGiocata.FREQUENZE_PUNTUALI.getTipo(), freqs.concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
     }
 

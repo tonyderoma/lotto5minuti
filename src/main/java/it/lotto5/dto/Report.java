@@ -93,4 +93,5 @@ public class Report extends PilotSupport {
     private String bianco(String s) {
         return color(s, Color.BIANCO_CORNICE_VUOTO, true, true, false, false);
     }
+
 }
