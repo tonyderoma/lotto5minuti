@@ -353,6 +353,16 @@ public class Lotto5Minuti extends PilotSupport {
             numeri.add(n);
         }
         p.getReport().add(new Report(TipoGiocata.NUMERICO_RANDOM.getTipo(), pl(), numeri, trovaNumeriEstratti(numeri)));
+
+        if (numeri.pari().size() >= 2) {
+            addGiocata(TipoGiocata.NUMERICO_RANDOM.getTipo(), numeri.pari());
+            giocateMultiple.add(numeri.pari());
+        }
+        if (numeri.dispari().size() >= 2) {
+            addGiocata(TipoGiocata.NUMERICO_RANDOM.getTipo(), numeri.dispari());
+            giocateMultiple.add(numeri.dispari());
+        }
+
         addGiocata(TipoGiocata.NUMERICO_RANDOM.getTipo(), numeri);
         giocateMultiple.add(numeri);
     }
