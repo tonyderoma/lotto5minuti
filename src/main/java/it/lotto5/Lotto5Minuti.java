@@ -353,7 +353,8 @@ public class Lotto5Minuti extends PilotSupport {
             numeri.add(n);
         }
         p.getReport().add(new Report(TipoGiocata.NUMERICO_RANDOM.getTipo(), pl(), numeri, trovaNumeriEstratti(numeri)));
-        giocaNumeri(TipoGiocata.NUMERICO_RANDOM, numeri, pl(quanti), 1);
+        addGiocata(TipoGiocata.NUMERICO_RANDOM.getTipo(), numeri);
+        giocateMultiple.add(numeri);
     }
 
     private void modoGiocoFrequenzeRandomDaAmpiezzeTra(Parametri p, Integer ampiezzaMin, Integer ampiezzaMax) throws Exception {
@@ -464,6 +465,7 @@ public class Lotto5Minuti extends PilotSupport {
             });
         }
     }
+
 
     private void addGiocata(String tipoGiocata, PList<Integer> numeri) {
         Giocata g = new Giocata(tipoGiocata);
