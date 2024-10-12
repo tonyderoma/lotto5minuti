@@ -174,7 +174,7 @@ public class Lotto5Minuti extends PilotSupport {
         log("INTERVALLO DI FREQUENZE:      ", quadra(), fre.min(FREQ).getFreq(), comma(), fre.max(FREQ).getFreq(), quadraClose());
         //PList<Integer> frequenzeBuone = ampiezze.gt("quantiIntercettati", 0).find().sort("freq").narrow("freq");
         //PList<Integer> frequenzeBuoneSelezionate = ampiezze.between("quantiIntercettati", 1, 5).between("ampiezza", ampiezzaMinima, ampiezzaMassima).find().sort("freq").narrow("freq");
-
+        System.out.println(color("Estrazione " + estrazioni.getFirstElement().getDataString(), Color.BIANCO, true, true, false, false) + tab() + color(estrazioni.getFirstElement().getEstrazione().concatenaDash(), Color.VIOLA, true, true, false, false));
         //modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         //modoGiocoAmpiezzeTra(2, 3, ampiezze, report, fre, false);
         // modoGiocoFrequenzePuntuali(pl(33, 25, 26), report, fre, false);
@@ -193,16 +193,19 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoAmpiezzePuntuali(L25, pl(7), p, false, true);
         //modoGiocoFrequenzeRandomDaAmpiezze(p, 6);
         //modoGiocoFrequenzeRandomDaAmpiezzeTra(p, 4, 6);
+        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 2);
+        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 3);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 4);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 5);
-        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 6);
-        modoGiocoNumericoRandom(p, 5);
+
+
+        /*modoGiocoNumericoRandom(p, 5);
         modoGiocoNumericoRandom(p, 6);
         modoGiocoNumericoRandom(p, 4);
         modoGiocoNumericoRandom(p, 7);
         modoGiocoNumericoRandom(p, 8);
         modoGiocoNumericoRandom(p, 3);
-        modoGiocoNumericoRandom(p, 2);
+        modoGiocoNumericoRandom(p, 2);*/
         //modoGiocoAmpiezzePuntuali(L25, pl(4), p, false, true);
         //modoGiocoAmpiezzePuntuali(L25, pl(5), p, false, true);
         //modoGiocoPosizionale(frequenzeEstrattePrecedenti, report, fre, false, true);
@@ -211,7 +214,9 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoExtraRandom(5, report);
         //modoGiocoAmpiezzeAlte(L25, p);
         //giocaResidui(p, 8);
-        //  modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
+        //giocaResidui(p, 10);
+        //giocaResidui(p, 6);
+        //modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
         printReport(p);
     }
 
@@ -337,7 +342,11 @@ public class Lotto5Minuti extends PilotSupport {
         limitaSviluppati = false;
         for (Integer f : freqs) {
             PList<Integer> numeri = getNumeriFrequenzePuntuali(pl(f), p, false);
-            giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
+            if (is(ampiezza, 2, 3))
+                giocaNumeri(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
+            else
+                giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
+            //giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri);
         }
         limitaSviluppati = true;
     }
@@ -453,8 +462,9 @@ public class Lotto5Minuti extends PilotSupport {
     private void giocaResidui(Parametri p, Integer quantiResidui) throws Exception {
         PList<Integer> totaleSviluppati = p.getTotaleSviluppati();
         PList<Integer> fib = getFibonacci();
-        while (totaleSviluppati.size() > quantiResidui)
-            totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getEstrazione().random(2));
+        while (totaleSviluppati.size() > quantiResidui) {
+            totaleSviluppati = totaleSviluppati.sottraiList(estrazioni.randomOne().getEstrazione().random(7));
+        }
         p.getReport().add(new Report(TipoGiocata.RESIDUI.getTipo(), totaleSviluppati, trovaNumeriEstratti(totaleSviluppati)));
         giocaNumeriPariDispari(TipoGiocata.RESIDUI, totaleSviluppati, L25, 1);
         //giocaNumeri(totaleSviluppati, L25, 1);
@@ -474,6 +484,14 @@ public class Lotto5Minuti extends PilotSupport {
                 giocateMultiple.add(numeri.random(l));
             });
         }
+    }
+
+    private void giocaNumeri(TipoGiocata tipoGiocata, PList<Integer> numeri) {
+        if (numeri.size() < 2) {
+            return;
+        }
+        addGiocata(tipoGiocata.getTipo(), numeri);
+        giocateMultiple.add(numeri);
     }
 
 
@@ -501,6 +519,11 @@ public class Lotto5Minuti extends PilotSupport {
     private void giocaNumeriPariDispari(TipoGiocata tipoGiocata, PList<Integer> numeri, PList<Integer> lunghezzeGiocate, int quantePerLunghezza) {
         giocaNumeri(tipoGiocata, numeri.pari(), lunghezzeGiocate, quantePerLunghezza);
         giocaNumeri(tipoGiocata, numeri.dispari(), lunghezzeGiocate, quantePerLunghezza);
+    }
+
+    private void giocaNumeriPariDispari(TipoGiocata tipoGiocata, PList<Integer> numeri) {
+        giocaNumeri(tipoGiocata, numeri.pari());
+        giocaNumeri(tipoGiocata, numeri.dispari());
     }
 
 
@@ -849,6 +872,8 @@ public class Lotto5Minuti extends PilotSupport {
                     es.impostaTrovati();
                     es.impostaMsgOri();
                 }
+
+
         }
         // estrazioni.sortDesc("ampiezza", "quantiTrovatiExtra");
         estrazioni.sortDesc("vincita");

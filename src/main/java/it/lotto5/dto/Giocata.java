@@ -8,6 +8,7 @@ public class Giocata extends PilotSupport {
     private String tipo;
     private PList<PList<Integer>> giocate = pl();
 
+
     public Giocata(String tipo, PList<PList<Integer>> giocate) {
         this.tipo = tipo;
         this.giocate = giocate;
@@ -36,4 +37,6 @@ public class Giocata extends PilotSupport {
     public void addGiocata(PList<Integer> giocata) {
         giocate.add(giocata);
     }
+
+
 }
