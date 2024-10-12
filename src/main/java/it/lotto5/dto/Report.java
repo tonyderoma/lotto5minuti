@@ -9,6 +9,8 @@ public class Report extends PilotSupport {
     PList<Integer> sviluppati = pl();
     PList<Integer> intercettati = pl();
 
+    private Integer costo;
+
     private String tipoGioco;
 
     public Report(PList<Integer> frequenze, PList<Integer> sviluppati, PList<Integer> intercettati) {
@@ -48,7 +50,7 @@ public class Report extends PilotSupport {
         String rapportoPari = str(" [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose());
         String rapportoDispari = str(" [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
         String rapporti = str(impostaColore(intercettati.size(), rapporto), impostaColore(intercettati.pari().size(), rapportoPari), space(2), impostaColore(intercettati.dispari().size(), rapportoDispari));
-        return str(impostaColore(intercettati.size(), getTipoGioco()), tab(), rapporti, "   Frequenze:", quadra(), color(frequenze.sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
+        return str(impostaColore(intercettati.size(), getTipoGioco()), tab(), giallo(moneyEuro(bd(getCosto()))), tab(), rapporti, "   Frequenze:", quadra(), color(frequenze.sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
     }
 
 
@@ -86,6 +88,10 @@ public class Report extends PilotSupport {
         return color(s, Color.VERDE, true, true, false, false);
     }
 
+    private String giallo(String s) {
+        return color(s, Color.GIALLO, true, true, false, false);
+    }
+
     private String rosso(String s) {
         return color(s, Color.ROSSO, true, true, false, false);
     }
@@ -94,4 +100,12 @@ public class Report extends PilotSupport {
         return color(s, Color.BIANCO_CORNICE_VUOTO, true, true, false, false);
     }
 
+
+    public Integer getCosto() {
+        return costo;
+    }
+
+    public void setCosto(Integer costo) {
+        this.costo = costo;
+    }
 }
