@@ -197,7 +197,7 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 3);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 4);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 5);
-
+        modoGiocoVerticali(p);
 
         /*modoGiocoNumericoRandom(p, 5);
         modoGiocoNumericoRandom(p, 6);
@@ -326,7 +326,8 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> freqs = p.getAmpiezze().gt(AMPIEZZA, 6).find().random(2).narrowDistinct(FREQ);
         PList<Integer> numeri = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
         p.getReport().add(new Report(g.getTipo(), freqs, numeri, trovaNumeriEstratti(numeri)));
-        giocaNumeriPariDispari(g, numeri, lunghezzeAmmesse, 1);
+        Integer quanteGiocate = giocaNumeriPariDispari(g, numeri, lunghezzeAmmesse, 1);
+        p.getReport().getLastElement().setCosto(quanteGiocate);
     }
 
 
@@ -335,7 +336,14 @@ public class Lotto5Minuti extends PilotSupport {
         limitaSviluppati = false;
         PList<Integer> numeri = getNumeriFrequenzePuntuali(freqs.random(2), p, false);
         limitaSviluppati = true;
-        giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
+        Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
+        p.getReport().getLastElement().setCosto(quanteGiocate);
+    }
+
+    private void modoGiocoVerticali(Parametri p) throws Exception {
+        p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), pl(), p.getNumeriVerticali(), trovaNumeriEstratti(p.getNumeriVerticali())));
+        Integer quanteGiocate = giocaNumeri(TipoGiocata.VERTICALI, p.getNumeriVerticali(), L25, 1);
+        p.getReport().getLastElement().setCosto(quanteGiocate);
     }
 
     private void modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(Parametri p, Integer ampiezza) throws Exception {
@@ -343,12 +351,16 @@ public class Lotto5Minuti extends PilotSupport {
         limitaSviluppati = false;
         for (Integer f : freqs) {
             PList<Integer> numeri = getNumeriFrequenzePuntuali(pl(f), p, false);
-            if (is(ampiezza, 2, 3)) {
+            if (is(ampiezza, 2, 3, 4)) {
                 Integer quanteGiocate = giocaNumeri(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
                 p.getReport().getLastElement().setCosto(quanteGiocate);
             } else {
                 Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
                 p.getReport().getLastElement().setCosto(quanteGiocate);
+            }
+            if (is(ampiezza, 3, 4, 5)) {
+                PList<Integer> svil = p.getReport().getLastElement().getSviluppati();
+                p.getNumeriVerticali().add(svil.getFirstElement(), svil.getLastElement());
             }
             //giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri);
         }
