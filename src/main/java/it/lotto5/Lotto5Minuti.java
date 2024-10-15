@@ -27,6 +27,7 @@ public class Lotto5Minuti extends PilotSupport {
     public static final String AMPIEZZA_FREQUENZE = "ampiezzaFrequenze.txt";
     public static final String AMPIEZZA_FREQUENZE_PRECEDENTI = "ampiezzaFrequenzePrecedenti.txt";
 
+    public Map<Integer, Integer> ritardi = new HashMap<>();
 
     public static final String REPORT = "REPORT.TXT";
 
@@ -177,6 +178,8 @@ public class Lotto5Minuti extends PilotSupport {
         //PList<Integer> frequenzeBuone = ampiezze.gt("quantiIntercettati", 0).find().sort("freq").narrow("freq");
         //PList<Integer> frequenzeBuoneSelezionate = ampiezze.between("quantiIntercettati", 1, 5).between("ampiezza", ampiezzaMinima, ampiezzaMassima).find().sort("freq").narrow("freq");
         System.out.println(color("Estrazione " + estrazioni.getFirstElement().getDataString(), Color.BIANCO, true, true, false, false) + tab() + color(estrazioni.getFirstElement().getEstrazione().concatenaDash(), Color.VIOLA, true, true, false, false));
+        stampaRapportoNumeriFreschi(3);
+        stampaRapportoNumeriFreschi(5);
         //modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         //modoGiocoAmpiezzeTra(2, 3, ampiezze, report, fre, false);
         // modoGiocoFrequenzePuntuali(pl(33, 25, 26), report, fre, false);
@@ -346,8 +349,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-    private Map<Integer, Integer> calcolaRitardi() {
-        Map<Integer, Integer> ritardi = new HashMap<>();
+    private void calcolaRitardi() {
         for (int k = 1; k <= 90; k++) {
             for (int i = 1; i <= estrazioni.size(); i++) {
                 if (estrazioni.get(i - 1).getEstrazione().contains(k)) {
@@ -356,16 +358,22 @@ public class Lotto5Minuti extends PilotSupport {
                 }
             }
         }
-        return ritardi;
     }
 
     private void stampaRitardi() throws Exception {
-        Map<Integer, Integer> ritardi = calcolaRitardi();
         String cont = "";
         for (Map.Entry<Integer, Integer> entry : ritardi.entrySet()) {
             cont = str(cont, entry.getKey(), arrow(), entry.getValue(), " estrazioni", lf());
         }
         writeFile(RITARDI, cont);
+    }
+
+    public PList<Integer> getNumeriRitardoMassimo(Integer n) {
+        PList<Integer> numeriFreschi = pl();
+        for (Map.Entry<Integer, Integer> entry : ritardi.entrySet()) {
+            if (entry.getValue() <= n) numeriFreschi.add(entry.getKey());
+        }
+        return numeriFreschi;
     }
 
     private void modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(Parametri p, Integer ampiezza, boolean giocaVerticali) throws Exception {
@@ -926,7 +934,7 @@ public class Lotto5Minuti extends PilotSupport {
         httpConn.disconnect();
     }
 
-    private void loadEstrazioni() {
+    private void loadEstrazioni() throws Exception {
         estrazioni = pl();
         PList<String> cont = readFile(FILE);
         cont = pl(cont.subList(3, cont.size() - 3));
@@ -938,6 +946,14 @@ public class Lotto5Minuti extends PilotSupport {
             estrazioni.add(es);
         }
         calcolaRitardi();
+        stampaRitardi();
+       }
+
+    private void stampaRapportoNumeriFreschi(Integer n){
+        PList<Integer> numeriFreschi = getNumeriRitardoMassimo(n);
+        PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
+        log("Numeri freschi a massimo ritardo ", n, tab(), verde(numeriFreschi.concatenaDash()));
+        log("Rapporto intercettati/freschi a massimo ritardo ", n, tab(), verde(str(ultima.intersection(numeriFreschi).size(), slash(), numeriFreschi.size()));
     }
 
     private void execute() throws Exception {
