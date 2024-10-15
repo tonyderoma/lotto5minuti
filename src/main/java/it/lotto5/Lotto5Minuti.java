@@ -184,7 +184,7 @@ public class Lotto5Minuti extends PilotSupport {
         // modoGiocoTipoFrequenze(ampiezze, report, fre);
 
 
-        modoGiocoAmpiezzeBasse(L25, p);
+        //modoGiocoAmpiezzeBasse(L25, p);
         modoGiocoAmpiezzeBasse(L25, p, true);
         /*modoGiocoAmpiezzePuntuali(L25, pl(2), p, false, true);
         modoGiocoAmpiezzePuntuali(L25, pl(3), p, false, true);*/
@@ -193,12 +193,11 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoAmpiezzePuntuali(L25, pl(7), p, false, true);
         //modoGiocoFrequenzeRandomDaAmpiezze(p, 6);
         //modoGiocoFrequenzeRandomDaAmpiezzeTra(p, 4, 6);
-        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 2);
-        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 3);
-        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 4);
-        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 5);
-        modoGiocoVerticali(p);
-
+        //modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 2, false);
+        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 3, true);
+        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 4, true);
+        modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 5, true);
+        //modoGiocoVerticaliDaAlte(p, 7);
         /*modoGiocoNumericoRandom(p, 5);
         modoGiocoNumericoRandom(p, 6);
         modoGiocoNumericoRandom(p, 4);
@@ -340,31 +339,52 @@ public class Lotto5Minuti extends PilotSupport {
         p.getReport().getLastElement().setCosto(quanteGiocate);
     }
 
-    private void modoGiocoVerticali(Parametri p) throws Exception {
-        p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), pl(), p.getNumeriVerticali(), trovaNumeriEstratti(p.getNumeriVerticali())));
-        Integer quanteGiocate = giocaNumeri(TipoGiocata.VERTICALI, p.getNumeriVerticali(), L25, 1);
-        p.getReport().getLastElement().setCosto(quanteGiocate);
-    }
 
-    private void modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(Parametri p, Integer ampiezza) throws Exception {
+    private void modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(Parametri p, Integer ampiezza, boolean giocaVerticali) throws Exception {
         PList<Integer> freqs = p.getAmpiezze().eq(AMPIEZZA, ampiezza).find().narrowDistinct(FREQ);
         limitaSviluppati = false;
+        PList<Integer> vert = pl();
+        giocaVerticali = tutte(giocaVerticali, freqs.size() > 1);
         for (Integer f : freqs) {
             PList<Integer> numeri = getNumeriFrequenzePuntuali(pl(f), p, false);
-            if (is(ampiezza, 2, 3, 4)) {
+            if (is(ampiezza, 2, 3)) {
                 Integer quanteGiocate = giocaNumeri(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
                 p.getReport().getLastElement().setCosto(quanteGiocate);
             } else {
                 Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, L25, 1);
                 p.getReport().getLastElement().setCosto(quanteGiocate);
             }
-            if (is(ampiezza, 3, 4, 5)) {
+            if (giocaVerticali && is(ampiezza, 3, 4, 5)) {
                 PList<Integer> svil = p.getReport().getLastElement().getSviluppati();
-                p.getNumeriVerticali().add(svil.getFirstElement(), svil.getLastElement());
+                vert.add(svil.get(1));
+                vert.add(svil.get(svil.size() - 2));
             }
             //giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri);
         }
+        vert = vert.distinct();
+        if (giocaVerticali && is(ampiezza, 3, 4, 5)) {
+            p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), freqs, vert, trovaNumeriEstratti(vert)));
+            Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.VERTICALI, vert, L25, 1);
+            p.getReport().getLastElement().setCosto(quanteGiocate);
+        }
         limitaSviluppati = true;
+    }
+
+
+    private void modoGiocoVerticaliDaAlte(Parametri p, Integer ampiezza) throws Exception {
+        PList<Integer> freqs = p.getAmpiezze().gte(AMPIEZZA, ampiezza).find().narrowDistinct(FREQ);
+        PList<Integer> vert = pl();
+        for (Integer f : freqs) {
+            PList<Integer> svil = p.getFrequenze().eq(FREQ, f).find().narrowDistinct(NUMERO);
+            vert.add(svil.get(1));
+            vert.add(svil.get(3));
+            vert.add(svil.get(svil.size() - 2));
+            vert.add(svil.get(svil.size() - 3));
+        }
+        vert = vert.distinct();
+        p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), freqs, vert, trovaNumeriEstratti(vert)));
+        Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.VERTICALI, vert, L25, 1);
+        p.getReport().getLastElement().setCosto(quanteGiocate);
     }
 
     private void modoGiocoNumericoRandom(Parametri p, Integer quanti) throws Exception {

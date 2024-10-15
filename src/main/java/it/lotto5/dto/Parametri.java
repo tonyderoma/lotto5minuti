@@ -13,7 +13,6 @@ public class Parametri extends PilotSupport {
 
     private PList<Integer> numeriSviluppati = pl();
 
-    private PList<Integer> numeriVerticali = pl();
 
     public Parametri(PList<Report> report, PList<Frequenza> frequenze, PList<Ampiezza> ampiezze) {
         this.report = report;
@@ -69,11 +68,4 @@ public class Parametri extends PilotSupport {
         this.numeriSviluppati = numeriSviluppati;
     }
 
-    public PList<Integer> getNumeriVerticali() {
-        return numeriVerticali;
-    }
-
-    public void setNumeriVerticali(PList<Integer> numeriVerticali) {
-        this.numeriVerticali = numeriVerticali;
-    }
 }
