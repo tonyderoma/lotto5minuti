@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,9 @@ public class Lotto5Minuti extends PilotSupport {
     public static final String AMPIEZZA_FREQUENZE = "ampiezzaFrequenze.txt";
     public static final String AMPIEZZA_FREQUENZE_PRECEDENTI = "ampiezzaFrequenzePrecedenti.txt";
 
-    public Map<Integer, Integer> ritardi = new HashMap<>();
+    public Map<Integer, Ritardo> ritardi = new HashMap<>();
+
+    public PList<Ritardo> ritardiNumerici = pl();
 
     public static final String REPORT = "REPORT.TXT";
 
@@ -150,6 +153,17 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
+    private String getEstrazioneColorata(Integer maxRit) throws Exception {
+        PList<Integer> rit = ritardiNumerici.cutToFirst(maxRit).narrow("numero");
+        String out = " ";
+        String num = "";
+        for (Integer n : estrazioni.getFirstElement().getEstrazione()) {
+            num = rit.contains(n) ? rosso(n.toString()) : biancoGrassetto(n.toString());
+            out = str(out, num, dash());
+        }
+        return out.substring(0, out.length() - 1);
+    }
+
     private void elaboraFrequenze() throws Exception {
         if (estrazioni.size() <= 1) return;
         salvaFrequenze();
@@ -177,9 +191,11 @@ public class Lotto5Minuti extends PilotSupport {
         log("INTERVALLO DI FREQUENZE:      ", quadra(), fre.min(FREQ).getFreq(), comma(), fre.max(FREQ).getFreq(), quadraClose());
         //PList<Integer> frequenzeBuone = ampiezze.gt("quantiIntercettati", 0).find().sort("freq").narrow("freq");
         //PList<Integer> frequenzeBuoneSelezionate = ampiezze.between("quantiIntercettati", 1, 5).between("ampiezza", ampiezzaMinima, ampiezzaMassima).find().sort("freq").narrow("freq");
-        System.out.println(color("Estrazione " + estrazioni.getFirstElement().getDataString(), Color.BIANCO, true, true, false, false) + tab() + color(estrazioni.getFirstElement().getEstrazione().concatenaDash(), Color.VIOLA, true, true, false, false));
-        stampaRapportoNumeriFreschi(3);
-        stampaRapportoNumeriFreschi(5);
+        System.out.println(color("Estrazione " + estrazioni.getFirstElement().getDataString(), Color.BIANCO, true, true, false, false) + tab() + getEstrazioneColorata(6));
+        System.out.println(getRitardiEstrazione());
+        stampaRapportoMaxRit(6);
+        /*stampaRapportoNumeriRitardoPuntuale(4, 6, 9);
+        stampaRapportoNumeriRitardoPuntuale(3, 7, 11);*/
         //modoGiocoAmpiezzeBasse(ampiezze, report, fre);
         //modoGiocoAmpiezzeTra(2, 3, ampiezze, report, fre, false);
         // modoGiocoFrequenzePuntuali(pl(33, 25, 26), report, fre, false);
@@ -189,7 +205,7 @@ public class Lotto5Minuti extends PilotSupport {
         // modoGiocoTipoFrequenze(ampiezze, report, fre);
 
 
-        //modoGiocoAmpiezzeBasse(L25, p);
+        // modoGiocoAmpiezzeBasse(L25, p);
         modoGiocoAmpiezzeBasse(L25, p, true);
         /*modoGiocoAmpiezzePuntuali(L25, pl(2), p, false, true);
         modoGiocoAmpiezzePuntuali(L25, pl(3), p, false, true);*/
@@ -202,6 +218,7 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 3, true);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 4, true);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 5, true);
+//        modoGiocoMaxRit(6, L25, p);
         modoGiocoVerticaliAmpiezzaTra(p, 6, 8);
         modoGiocoVerticaliAmpiezzaTra(p, 8, 10);
         modoGiocoVerticaliAmpiezzaDa(p, 10);
@@ -226,6 +243,15 @@ public class Lotto5Minuti extends PilotSupport {
         //giocaResidui(p, 6);
         //modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
         printReport(p);
+    }
+
+    private String getRitardiEstrazione() throws Exception {
+        String out = "";
+        PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
+        for (Integer i : ultima) {
+            out = str(out, ritardiNumerici.eq(NUMERO, i).findOne().getRitardo(), dash());
+        }
+        return biancoGrassetto("Ritardi " + space(21) + tab() + cutLast(out));
     }
 
 
@@ -329,6 +355,18 @@ public class Lotto5Minuti extends PilotSupport {
         p.getReport().getLastElement().setCosto(quanteGiocate);
     }
 
+    private void modoGiocoMaxRit(Integer n, PList<Integer> lunghezzeAmmesse, Parametri p) throws Exception {
+        PList<Integer> numeri = ritardiNumerici.cutToFirst(n).narrow(NUMERO);
+        PList<Integer> freqs = p.getFrequenze().in(NUMERO, numeri).find().narrowDistinct(FREQ);
+        Integer quanteGiocate = 0;
+        if (n <= 2)
+            quanteGiocate = giocaNumeri(TipoGiocata.MAX_RIT, numeri, lunghezzeAmmesse, 1);
+        else quanteGiocate = giocaNumeriPariDispari(TipoGiocata.MAX_RIT, numeri, lunghezzeAmmesse, 1);
+
+        p.getReport().add(new Report(TipoGiocata.MAX_RIT.getTipo(), freqs, numeri, trovaNumeriEstratti(numeri)));
+        p.getReport().getLastElement().setCosto(quanteGiocate);
+    }
+
     private void modoGiocoAmpiezzeAlte(PList<Integer> lunghezzeAmmesse, Parametri p) throws Exception {
         TipoGiocata g = TipoGiocata.AMPIEZZE_ALTE;
         PList<Integer> freqs = p.getAmpiezze().gt(AMPIEZZA, 6).find().random(2).narrowDistinct(FREQ);
@@ -350,10 +388,12 @@ public class Lotto5Minuti extends PilotSupport {
 
 
     private void calcolaRitardi() {
+        ritardi = new HashMap<>();
+        ritardiNumerici = pl();
         for (int k = 1; k <= 90; k++) {
-            for (int i = 1; i <= estrazioni.size(); i++) {
-                if (estrazioni.get(i - 1).getEstrazione().contains(k)) {
-                    ritardi.put(k, i);
+            for (int i = 1; i < estrazioni.size(); i++) {
+                if (estrazioni.get(i).getEstrazione().contains(k)) {
+                    ritardi.put(k, new Ritardo(k, i, estrazioni.get(i).getDataString()));
                     break;
                 }
             }
@@ -361,19 +401,36 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     private void stampaRitardi() throws Exception {
-        String cont = "";
-        for (Map.Entry<Integer, Integer> entry : ritardi.entrySet()) {
-            cont = str(cont, entry.getKey(), arrow(), entry.getValue(), " estrazioni", lf());
+        for (Map.Entry<Integer, Ritardo> entry : ritardi.entrySet()) {
+            ritardiNumerici.add(entry.getValue());
         }
-        writeFile(RITARDI, cont);
+        ritardiNumerici = ritardiNumerici.sortDesc("ritardo");
+        writeFile(RITARDI, ritardiNumerici);
     }
 
     public PList<Integer> getNumeriRitardoMassimo(Integer n) {
         PList<Integer> numeriFreschi = pl();
-        for (Map.Entry<Integer, Integer> entry : ritardi.entrySet()) {
-            if (entry.getValue() <= n) numeriFreschi.add(entry.getKey());
+        for (Map.Entry<Integer, Ritardo> entry : ritardi.entrySet()) {
+            if (entry.getValue().getRitardo() <= n) numeriFreschi.add(entry.getKey());
         }
         return numeriFreschi;
+    }
+
+    public PList<Integer> getNumeriRitardoPuntuale(Integer... n) {
+        PList<Integer> numeri = pl();
+        for (Map.Entry<Integer, Ritardo> entry : ritardi.entrySet()) {
+            if (Arrays.stream(n).distinct().anyMatch((i -> i.equals(entry.getValue().getRitardo()))))
+                numeri.add(entry.getKey());
+        }
+        return numeri;
+    }
+
+    public PList<Integer> getNumeriRitardatari(Integer n) {
+        PList<Integer> numeri = pl();
+        for (Map.Entry<Integer, Ritardo> entry : ritardi.entrySet()) {
+            if (entry.getValue().getRitardo() >= n) numeri.add(entry.getKey());
+        }
+        return numeri;
     }
 
     private void modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(Parametri p, Integer ampiezza, boolean giocaVerticali) throws Exception {
@@ -410,12 +467,15 @@ public class Lotto5Minuti extends PilotSupport {
     private void modoGiocoVerticaliDaAlte(Parametri p, Integer ampiezza) throws Exception {
         PList<Integer> freqs = p.getAmpiezze().gte(AMPIEZZA, ampiezza).find().narrowDistinct(FREQ);
         PList<Integer> vert = pl();
+        if (freqs.size() <= 1) return;
         for (Integer f : freqs) {
             PList<Integer> svil = p.getFrequenze().eq(FREQ, f).find().narrowDistinct(NUMERO);
-            vert.add(svil.get(1));
-            vert.add(svil.get(3));
-            vert.add(svil.get(svil.size() - 2));
-            vert.add(svil.get(svil.size() - 3));
+            if (svil.size() > 5) {
+                vert.add(svil.get(1));
+                vert.add(svil.get(3));
+                vert.add(svil.get(svil.size() - 2));
+                vert.add(svil.get(svil.size() - 3));
+            } else vert.addAll(svil);
         }
         vert = vert.distinct();
         p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), freqs, vert, trovaNumeriEstratti(vert)));
@@ -429,7 +489,8 @@ public class Lotto5Minuti extends PilotSupport {
         if (freqs.size() <= 1) return;
         for (Integer f : freqs) {
             PList<Integer> svil = p.getFrequenze().eq(FREQ, f).find().narrowDistinct(NUMERO);
-            vert.add(svil.randomOne());
+            if (notNull(svil))
+                vert.add(svil.randomOne());
         }
         vert = vert.distinct();
         p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), freqs, vert, trovaNumeriEstratti(vert)));
@@ -443,7 +504,8 @@ public class Lotto5Minuti extends PilotSupport {
         if (freqs.size() <= 1) return;
         for (Integer f : freqs) {
             PList<Integer> svil = p.getFrequenze().eq(FREQ, f).find().narrowDistinct(NUMERO);
-            vert.add(svil.randomOne());
+            if (notNull(svil))
+                vert.add(svil.randomOne());
         }
         vert = vert.distinct();
         p.getReport().add(new Report(TipoGiocata.VERTICALI.getTipo(), freqs, vert, trovaNumeriEstratti(vert)));
@@ -947,13 +1009,36 @@ public class Lotto5Minuti extends PilotSupport {
         }
         calcolaRitardi();
         stampaRitardi();
-       }
+    }
 
-    private void stampaRapportoNumeriFreschi(Integer n){
+    private void stampaRapportoNumeriFreschi(Integer n) {
         PList<Integer> numeriFreschi = getNumeriRitardoMassimo(n);
         PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
-        log("Numeri freschi a massimo ritardo ", n, tab(), verde(numeriFreschi.concatenaDash()));
-        log("Rapporto intercettati/freschi a massimo ritardo ", n, tab(), verde(str(ultima.intersection(numeriFreschi).size(), slash(), numeriFreschi.size()));
+        log(biancoGrassetto("Numeri freschi a massimo ritardo " + n), tab(), verde(numeriFreschi.concatenaDash()));
+        log(biancoGrassetto("Rapporto intercettati/freschi a massimo ritardo " + n), tab(), verde(str(ultima.intersection(numeriFreschi).size(), slash(), numeriFreschi.size())), tab(), verde(ultima.intersection(numeriFreschi).concatenaDash()));
+    }
+
+    private void stampaRapportoMaxRit(Integer n) throws Exception {
+        PList<Integer> numeri = ritardiNumerici.cutToFirst(n).narrow("numero");
+        PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
+        PList<Integer> interc = ultima.intersection(numeri);
+        String rapportiPariDispari = (verde(str(quadra(), "Pari: ", interc.pari().size(), slash(), numeri.pari().size(), quadraClose(), tab(), quadra(), "Dispari: ", interc.dispari().size(), slash(), numeri.dispari().size(), quadraClose())));
+        log(biancoGrassetto("Primi " + n + " massimi ritardatari"), tab(), verde(numeri.concatenaDash()));
+        log(biancoGrassetto("Rapporto intercettati/max rit  "), tab(), verde(str(interc.size(), slash(), numeri.size())), tab(), verde(interc.concatenaDash()), tab(), rapportiPariDispari);
+    }
+
+    private void stampaRapportoNumeriRitardoPuntuale(Integer... n) {
+        PList<Integer> numeri = getNumeriRitardoPuntuale(n);
+        PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
+        log(biancoGrassetto("Numeri a ritardo puntuale " + arrayToList(n).concatenaDash()), tab(), verde(numeri.concatenaDash()));
+        log(biancoGrassetto("Rapporto intercettati/ritardo puntuale " + arrayToList(n).concatenaDash()), tab(), verde(str(ultima.intersection(numeri).size(), slash(), numeri.size())), tab(), verde(ultima.intersection(numeri).concatenaDash()));
+    }
+
+    private void stampaRapportoNumeriRitardatari(Integer n) {
+        PList<Integer> numeri = getNumeriRitardatari(n);
+        PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
+        log(biancoGrassetto("Numeri ritardatari da " + n + " estrazioni "), tab(), verde(numeri.concatenaDash()));
+        log(biancoGrassetto("Rapporto intercettati/ritardatari da " + n + " estrazioni"), tab(), verde(str(ultima.intersection(numeri).size(), slash(), numeri.size())), tab(), verde(ultima.intersection(numeri).concatenaDash()));
     }
 
     private void execute() throws Exception {
@@ -1040,12 +1125,20 @@ public class Lotto5Minuti extends PilotSupport {
         return color(s, Color.ROSSO, true, true, false, false);
     }
 
+    private String viola(String s) {
+        return color(s, Color.VIOLA, true, true, false, false);
+    }
+
     private String giallo(String s) {
         return color(s, Color.GIALLO, true, true, false, false);
     }
 
     private String bianco(String s) {
         return color(s, Color.BIANCO_CORNICE_VUOTO, true, true, false, false);
+    }
+
+    private String biancoGrassetto(String s) {
+        return color(s, Color.BIANCO, true, true, false, false);
     }
 
     private PList<PList<Integer>> getEstrazioniFibonacci() {
@@ -1190,5 +1283,4 @@ public class Lotto5Minuti extends PilotSupport {
                 log(e.getDataString(), "Consecutivi: ", color(cons.concatenaDash(), Color.VIOLA_CORNICE, true, true, false, false));
         }
     }
-
 }
