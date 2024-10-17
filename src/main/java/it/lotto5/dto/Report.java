@@ -77,6 +77,10 @@ public class Report extends PilotSupport {
 
 
     public String getTipoGioco() {
+        int limite = 30;
+        if (tipoGioco.length() <= limite) {
+            tipoGioco = tipoGioco + space(limite - tipoGioco.length());
+        }
         return color(tipoGioco, Color.BIANCO, false, true, false, false);
     }
 
