@@ -50,7 +50,7 @@ public class Report extends PilotSupport {
         String rapportoPari = str(" [Pari: ", intercettati.pari().size(), slash(), sviluppati.pari().size(), quadraClose());
         String rapportoDispari = str(" [Dispari: ", intercettati.dispari().size(), slash(), sviluppati.dispari().size(), quadraClose());
         String rapporti = str(impostaColore(intercettati.size(), rapporto), impostaColore(intercettati.pari().size(), rapportoPari), space(2), impostaColore(intercettati.dispari().size(), rapportoDispari));
-        return str(impostaColore(intercettati.size(), getTipoGioco()), tab(), giallo(moneyEuro(bd(getCosto()))), tab(), rapporti, "   Frequenze:", quadra(), color(frequenze.sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
+        return str(impostaColore(intercettati.size(), getTipoGioco()), tab(), giallo(moneyEuro(bd(getCosto()))), tab(), rapporti, "   Frequenze:", quadra(), color(frequenze.distinct().sort().concatenaDash(), Color.VERDE, true, true, false, false), quadraClose(), "   Sviluppati ", sviluppati.size(), " numeri: ", color(sviluppati.sort().concatenaDash(), Color.BIANCO_CORNICE_VUOTO, true, true, false, false), "  Intercettati ", intercettati.size(), " numeri: ", color(intercettati.sort().concatenaDash(), Color.VERDE, true, true, false, false));
     }
 
 
