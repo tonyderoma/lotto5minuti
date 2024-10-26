@@ -19,13 +19,15 @@ public class StudioFrequenze extends PilotSupport {
     private static final int BUFFER_SIZE = 4096;
     PList<Estrazione5Minuti> estrazioni = pl();
 
+    private PDate giornoDownload = giorniFa(2);
+
     public static void main(String[] args) throws Exception {
         BasicConfigurator.configure();
         StudioFrequenze sf = new StudioFrequenze();
         //sf.calcolaFrequenzeFinoA((198,"14-09-2024"));
         //sf.run1(180, "23-09-2024");
         //sf.run1(180, "24-09-2024");
-        sf.extra();
+        sf.download();
 
     }
 
@@ -153,8 +155,8 @@ public class StudioFrequenze extends PilotSupport {
         return estrazioni;
     }
 
-    private void download(PDate giorno) throws Exception {
-        URL url = new URL(str(URL, giorno.toStringFormat("yyyy-MM-dd")));
+    private void download() throws Exception {
+        URL url = new URL(str(URL, giornoDownload.toStringFormat("yyyy-MM-dd")));
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setRequestProperty("User-Agent",
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
@@ -163,7 +165,7 @@ public class StudioFrequenze extends PilotSupport {
             // opens input stream from the HTTP connection
             InputStream inputStream = httpConn.getInputStream();
             // opens an output stream to save into file
-            FileOutputStream outputStream = new FileOutputStream(str("estrazioni/", giorno.toStringFormat("dd-MM-YYYY"), dot(), "txt"));
+            FileOutputStream outputStream = new FileOutputStream(str("estrazioni/", giornoDownload.toStringFormat("dd-MM-YYYY"), dot(), "txt"));
             int bytesRead = -1;
             byte[] buffer = new byte[BUFFER_SIZE];
             while ((bytesRead = inputStream.read(buffer)) != -1) {

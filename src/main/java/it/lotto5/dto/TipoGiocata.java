@@ -2,7 +2,8 @@ package it.lotto5.dto;
 
 public enum TipoGiocata {
 
-    AMPIEZZE_BASSE("Ampiezze Basse"), CADENZE("Cadenze"), TIPO_FREQUENZE("Tipo Frequenze"), EXTRA_RANDOM("Extra Random"), AMPIEZZE_TRA("Ampiezze Tra"), FREQUENZE_TRA("Frequenze Tra"), FREQUENZE_PUNTUALI("Frequenze Puntuali"), AMPIEZZE_PUNTUALI("Ampiezze Puntuali"), RESIDUI("Residui"), AMPIEZZE_ALTE("Ampiezze Alte"), AMPIEZZE_RANDOM("Ampiezze Random"), NUMERICO_RANDOM("Numerico Random "), VERTICALI("Verticali"), MAX_RIT("Max Rit"), CADENZE_ESTRATTE("Cadenze Estratte"), MANUALE("Manuale");
+    AMPIEZZE_BASSE("Ampiezze Basse"), CADENZE("Cadenze"), TIPO_FREQUENZE("Tipo Frequenze"), EXTRA_RANDOM("Extra Random"), AMPIEZZE_TRA("Ampiezze Tra"), FREQUENZE_TRA("Frequenze Tra"), FREQUENZE_PUNTUALI("Frequenze Puntuali"), AMPIEZZE_PUNTUALI("Ampiezze Puntuali"), RESIDUI("Residui"), AMPIEZZE_ALTE("Ampiezze Alte"), AMPIEZZE_RANDOM("Ampiezze Random"), NUMERICO_RANDOM("Numerico Random "), VERTICALI("Verticali"), MAX_RIT("Max Rit"), CADENZE_ESTRATTE("Cadenze Estratte"), MANUALE("Manuale"), RIDUZIONE("Riduzione"), CASUALI("Casuali"), COORDSFREQS("Coords Freqs"), CADENZE_MISTE("Cadenze Miste"),
+    ;
 
     private String tipo;
 
