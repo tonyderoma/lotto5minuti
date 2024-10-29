@@ -19,7 +19,7 @@ public class StudioFrequenze extends PilotSupport {
     private static final int BUFFER_SIZE = 4096;
     PList<Estrazione5Minuti> estrazioni = pl();
 
-    private PDate giornoDownload = giorniFa(2);
+    private PDate giornoDownload = ieri();
 
     public static void main(String[] args) throws Exception {
         BasicConfigurator.configure();

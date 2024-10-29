@@ -90,6 +90,8 @@ public class Lotto5Minuti extends PilotSupport {
 
     PList<Estrazione5Minuti> estrazioni = pl();
 
+    PList<Estrazione5Minuti> estrazioniPassate = pl();
+
 
     private static final String FILE = "lotto5minuti.txt";
     private static final String URL = "https://www.lottologia.com/10elotto5minuti/archivio-estrazioni/?as=TXT&date=";
@@ -266,7 +268,7 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 4, true);
         modoGiocoFrequenzeSingoleDaAmpiezzePuntuali(p, 5, true);*/
         //modoGiocoMaxRit(6, L25, p);
-        modoGiocoMaxRitTra(2, 6, L24, p);
+        //modoGiocoMaxRitTra(1, 6, L24, p);
         /*modoGiocoVerticaliAmpiezzaTra(p, 6, 8);
         modoGiocoVerticaliAmpiezzaTra(p, 8, 10);
         modoGiocoVerticaliAmpiezzaDa(p, 10);*/
@@ -284,8 +286,10 @@ public class Lotto5Minuti extends PilotSupport {
         //modoGiocoPosizionale(frequenzeEstrattePrecedenti, p, false, true);
         modoGiocoCadenzeEstratte(p);
         if (estrazioni.size() > 20) {
-            //    modoGiocoRiduzione(p, 5);
-            modoGiocoRiduzioneDiagonale(p, 6);
+            modoGiocoRiduzione(p, 5, 3);
+            modoGiocoRiduzioneDalPassato(p, 5, 1, 3);
+            // modoGiocoRiduzione(getSviluppatiCadenzePari(), p, 5);
+            //modoGiocoRiduzioneDiagonale(p, 6);
         }
         //modoGiocoCoordsFreqs(p, numeriCoordsFreqs);
         //modoGiocoCasuali(p, 5, 20, 30);
@@ -322,15 +326,43 @@ public class Lotto5Minuti extends PilotSupport {
         return numeri.distinct();
     }
 
-    private void modoGiocoRiduzione(Parametri p, Integer quantiAlMassimo) throws Exception {
-        PList<Integer> all = pl();
-        for (int i = 1; i <= 10; i++) {
-            all.addAll(estrazioni.get(i).getEstrazione());
+    private void modoGiocoRiduzione(Parametri p, Integer quantiAlMassimo, Integer quantiCicli) throws Exception {
+        int i = 1;
+        int j = 5;
+        while (i <= quantiCicli) {
+            PList<Integer> all = p.getTotaleSviluppati();
+            while (all.size() > quantiAlMassimo) {
+                all = all.sottraiList(estrazioni.get(j).getEstrazione());
+                j++;
+            }
+            Integer quanteGiocate = giocaNumeri(TipoGiocata.RIDUZIONE, all, L24, 3);
+            impostaReportCosti(p, TipoGiocata.RIDUZIONE.getTipo(), quanteGiocate, all);
+            i++;
         }
-        all = all.distinct();
-        int j = 1;
+    }
+
+    private void modoGiocoRiduzioneDalPassato(Parametri p, Integer quantiAlMassimo, Integer giorniFa, Integer quantiCicli) throws Exception {
+        loadEstrazioniPassate(giorniFa);
+        estrazioniPassate = estrazioniPassate.lte("numero", estrazioni.getFirstElement().getNumero()).find();
+        int i = 1;
+        int j = 5;
+        while (i <= quantiCicli) {
+            PList<Integer> all = p.getTotaleSviluppati();
+            while (all.size() > quantiAlMassimo) {
+                all = all.sottraiList(estrazioniPassate.get(j).getEstrazione());
+                j++;
+            }
+            Integer quanteGiocate = giocaNumeri(TipoGiocata.RIDUZIONE_PASSATO, all, L24, 3);
+            impostaReportCosti(p, TipoGiocata.RIDUZIONE_PASSATO.getTipo() + "  " + giorniFa + " giorni fa", quanteGiocate, all);
+            i++;
+        }
+    }
+
+
+    private void modoGiocoRiduzione(PList<Integer> all, Parametri p, Integer quantiAlMassimo) throws Exception {
+        int j = 5;
         while (all.size() > quantiAlMassimo) {
-            all = all.sottraiList(estrazioni.get(j).getExtra());
+            all = all.sottraiList(estrazioni.get(j).getEstrazione());
             j++;
         }
         Integer quanteGiocate = giocaNumeri(TipoGiocata.RIDUZIONE, all, L24, 3);
@@ -381,6 +413,22 @@ public class Lotto5Minuti extends PilotSupport {
         PList<Integer> numeri = all.random(quanti);
         Integer quanteGiocate = giocaNumeri(TipoGiocata.CASUALI, numeri, L24, 3);
         impostaReportCosti(p, TipoGiocata.CASUALI.getTipo(), quanteGiocate, numeri);
+    }
+
+
+    private PList<Integer> getSviluppatiCadenzePari() {
+        PList<Integer> tutti = pl();
+        PList<Integer> numbers = pl();
+        for (Estrazione5Minuti e : estrazioni.subList(1, 5)) {
+            tutti.addAll(e.getEstrazione());
+        }
+        tutti = tutti.distinct();
+        Integer quanteGiocate = 0;
+        for (int i = 0; i <= 10; i = i + 2) {
+            int k = i;
+            numbers.addAll(pl(tutti.stream().filter((n) -> (n - k) % 10 == 0).collect(Collectors.toList())));
+        }
+        return numbers.distinct();
     }
 
     private void modoGiocoCadenzeEstratte(Parametri p) throws Exception {
@@ -911,6 +959,7 @@ public class Lotto5Minuti extends PilotSupport {
         for (Integer l : lunghezzeGiocate) {
             quanteGiocate = quanteGiocate + lunghezzeGiocate.size();
             intermedie = pl();
+            //if (l.equals(numeri.size())) quantePerLunghezza = 1;
             for (int i = 1; i <= quantePerLunghezza; i++) {
                 String val = numeri.random(l).concatenaDash();
                 if (l.intValue() < numeri.size() && intermedie.contains(val)) {
@@ -1223,6 +1272,11 @@ public class Lotto5Minuti extends PilotSupport {
         }
     }
 
+    private void downloadEstrazioniPassate(Integer quantiGiorniFa) throws Exception {
+        if (!fileExists(str("estrazioni/", giorniFa(quantiGiorniFa).toStringFormat("dd-MM-YYYY"), dot(), "txt")))
+            download(giorniFa(quantiGiorniFa));
+    }
+
     private void download() throws Exception {
         String giorno = Null(giornoDaScaricare) ? now().toStringFormat("yyyy-MM-dd") : giornoDaScaricare;
         String fileURL = str(URL, giorno);
@@ -1292,6 +1346,21 @@ public class Lotto5Minuti extends PilotSupport {
         }
         calcolaRitardi();
         stampaRitardi();
+    }
+
+    private void loadEstrazioniPassate(int giorniFa) throws Exception {
+        String file = str("estrazioni/", giorniFa(giorniFa).toStringFormat("dd-MM-YYYY"), dot(), "txt");
+        downloadEstrazioniPassate(giorniFa);
+        estrazioniPassate = pl();
+        PList<String> cont = readFile(file);
+        cont = pl(cont.subList(3, cont.size() - 3));
+        for (String item : cont) {
+            Estrazione5Minuti es = new Estrazione5Minuti(item);
+            es.setOroGiocato(oro);
+            es.setDoppioOroGiocato(doppioOro);
+            es.setGiocataExtra(extra);
+            estrazioniPassate.add(es);
+        }
     }
 
     private void stampaRapportoNumeriFreschi(Integer n) {
