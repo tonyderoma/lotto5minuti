@@ -1,0 +1,1 @@
+scp -i "C:\testi5\ssh\lotto.pem" -P 8888 C:\Users\IT20428\lottoApp\storico.txt ubuntu@localhost:/home/ubuntu/

@@ -1,0 +1,1 @@
+scp -i "C:\testi5\ssh\lotto.pem" -P 8888 %1 ubuntu@localhost:%2

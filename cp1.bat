@@ -1,0 +1,1 @@
+aws ec2-instance-connect open-tunnel --instance-id i-01889cb12a368a728 --local-port 8888
