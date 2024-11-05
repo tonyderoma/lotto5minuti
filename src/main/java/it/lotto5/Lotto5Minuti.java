@@ -1,9 +1,6 @@
 package it.lotto5;
 
-import it.eng.pilot.Color;
-import it.eng.pilot.PDate;
-import it.eng.pilot.PList;
-import it.eng.pilot.PilotSupport;
+import it.eng.pilot.*;
 import it.lotto5.dto.*;
 import org.apache.log4j.BasicConfigurator;
 
@@ -348,6 +345,16 @@ public class Lotto5Minuti extends PilotSupport {
             impostaReportCosti(p, TipoGiocata.RIDUZIONE.getTipo(), quanteGiocate, all);
             i++;
         }
+        i = 1;
+        while (i <= quantiCicli) {
+            PList<Integer> all = p.getTotaleSviluppati();
+            while (all.size() > quantiAlMassimo) {
+                all.remove(all.randomOne());
+            }
+            Integer quanteGiocate = giocaNumeri(TipoGiocata.RIDUZIONE, all, L24, 3);
+            impostaReportCosti(p, TipoGiocata.RIDUZIONE.getTipo(), quanteGiocate, all);
+            i++;
+        }
         posizioniPrecedenti.clear();
         if (notNull(posizioniPrecedenti)) {
             PList<Integer> nums = pl();
@@ -484,7 +491,7 @@ public class Lotto5Minuti extends PilotSupport {
             quanteGiocate = giocaNumeri(TipoGiocata.CADENZE_ESTRATTE, numeri1, L24, 3);
             impostaReportCosti(p, TipoGiocata.CADENZE_ESTRATTE.getTipo() + tab() + i, quanteGiocate, numeri1);
 
-            
+
             if (notNull(numeri2) && numeri2.size() > 1) {
                 quanteGiocate = giocaNumeri(TipoGiocata.CADENZE_ESTRATTE, numeri2, L23, 3);
                 impostaReportCosti(p, TipoGiocata.CADENZE_ESTRATTE.getTipo() + tab() + i, quanteGiocate, numeri2);
@@ -1447,7 +1454,7 @@ public class Lotto5Minuti extends PilotSupport {
         Integer doppioOriPresi = 0;
         if (notNull(ultimeEstrazioni)) estrazioni = estrazioni.cutToFirst(ultimeEstrazioni);
         for (Estrazione5Minuti es : safe(estrazioni)) {
-            for (Giocata g : safe(giocate))
+            for (Giocata g : safe(giocate)) {
                 for (PList<Integer> giocata : safe(g.getGiocate())) {
                     es.setTipoGiocata(g.getTipo());
                     es.setGiocata(giocata);
@@ -1459,12 +1466,15 @@ public class Lotto5Minuti extends PilotSupport {
                         oriPresi++;
                     if (es.presoDoppioOro())
                         doppioOriPresi++;
+                    Integer vincita = calcolaVincita(es);
                     es.addVincita(calcolaVincita(es));
                     es.impostaTrovati();
                     es.impostaMsgOri();
+                    g.setVincita(g.getVincita() + vincita);
+                    g.setSpesa(g.getSpesa() + es.getSpesa());
                 }
 
-
+            }
         }
         // estrazioni.sortDesc("ampiezza", "quantiTrovatiExtra");
         estrazioni.sortDesc("vincita");
@@ -1477,6 +1487,23 @@ public class Lotto5Minuti extends PilotSupport {
                 //log(e);
             }
         }
+        String raggr = "";
+        String sub = "";
+        Integer vincita = 0;
+        Integer spesa = 0;
+        PMap<String, PList<Giocata>> mappa = giocate.groupBy("tipo");
+        for (Map.Entry<String, PList<Giocata>> entry : mappa.entrySet()) {
+            vincita = entry.getValue().narrow("vincita").sommatoria(Integer.class);
+            spesa = entry.getValue().narrow("spesa").sommatoria(Integer.class);
+            sub = str(moneyEuro(bd(vincita)), slash(), moneyEuro(bd(spesa)));
+            if (vincita >= spesa) {
+                sub = verde(sub);
+            } else {
+                sub = rosso(sub);
+            }
+            raggr = str(raggr, tab2(), biancoGrassetto(entry.getKey()), arrow(), sub, lf());
+        }
+        System.out.println(raggr);
         String output = str(estrazioni.getFirstElement().getDataString(), "   ");
         //log(getTitle("REPORT FINALE", 80, "*"));
         //  log("Max Trovati", estrazioni.max("maxTrovati"));
