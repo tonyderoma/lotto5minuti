@@ -29,6 +29,7 @@ public class Estrazione5Minuti extends PilotSupport {
     private boolean doppioOroGiocato;
     private boolean giocataExtra;
 
+
     private String msgTrovati = "Trovati: ";
 
     private String msgTrovatiVincenti = "";

@@ -16,10 +16,10 @@ public class CalcoloBilancio extends PilotSupport {
         Integer totale = 0;
         PList<String> report = readFile("REPORT.TXT");
         for (String row : report) {
-            Integer bilancio = getInteger(substring(row, "BILANCIO:", false, false, comma(), false, true));
+            Integer bilancio = zeroIfNull(getInteger(substring(row, "BILANCIO:", false, false, comma(), false, true)));
             totale += bilancio;
         }
-        log("Bilancio finale=", totale);
+        log("Bilancio finale=", moneyEuro(bd(totale)));
 
     }
 
