@@ -389,20 +389,35 @@ public class Lotto5Minuti extends PilotSupport {
         int i = 1;
         PList<Integer> all = pl();
         PList<Integer> posizioniDaRimuovere = pl();
-        while (posizioniDaRimuovere.size() < numeri.size() - quantiAlMassimo) {
-            Integer n = random(0, numeri.size() - 1);
-            if (posizioniDaRimuovere.contains(n)) continue;
-            posizioniDaRimuovere.add(n);
+        for (Integer cas : numeri.random(numeri.size() - quantiAlMassimo)) {
+            posizioniDaRimuovere.add(numeri.indexOf(cas));
         }
 
         while (i <= quantiCicli) {
             all = numeri.copia();
-            if (i > 1) all = all.mescola().remove(posizioniDaRimuovere).sort();
+            all = i > 1 ? all.mescola().remove(posizioniDaRimuovere).sort() : all.remove(posizioniDaRimuovere).sort();
             numeriGiocati.addAll(all);
             bet(p, TipoGiocata.RIDUZIONE, "", all, L24, 1);
             modoGiocoPrimiUltimiDue(p, TipoGiocata.RIDUZIONE, all, -1);
             i++;
         }
+        log(str("Numeri giocati in riduzione ", numeriGiocati.distinct().size(), arrow(), getNumeriColorati(numeriGiocati.distinct(), p.getTotaleIntercettati())));
+        PList<Integer> restanti = numeri.sottraiList(numeriGiocati).sort();
+        log(str("Numeri restanti ", restanti.size(), arrow(), getNumeriColorati(restanti, p.getTotaleIntercettati())));
+        bet(p, TipoGiocata.RIDUZIONE, "", restanti.cutToFirst(5), L24, 1);
+        modoGiocoPrimiUltimiDue(p, TipoGiocata.RIDUZIONE, restanti.cutToFirst(5), -1);
+        bet(p, TipoGiocata.RIDUZIONE, "", restanti.cutToLast(5), L24, 1);
+        modoGiocoPrimiUltimiDue(p, TipoGiocata.RIDUZIONE, restanti.cutToLast(5), -1);
+    }
+
+    private String getNumeriColorati(PList<Integer> numeri, PList<Integer> interc) throws Exception {
+        String out = " ";
+        String num = "";
+        for (Integer n : numeri) {
+            num = interc.contains(n) ? rosso(n.toString()) : biancoGrassetto(n.toString());
+            out = str(out, num, dash());
+        }
+        return out.substring(0, out.length() - 1);
     }
 
 
@@ -577,18 +592,17 @@ public class Lotto5Minuti extends PilotSupport {
         }
         tutti = tutti.distinct();
         PList<Integer> nums = pl();
-        for (int i = 1; i <= 10; i = i + 2) {
-            //for (int i = 0; i <= 9; i = i + 1) {
-            int k = i;
-            PList<Integer> numeri = pl(tutti.stream().filter((n) -> (n - k) % 10 == 0).collect(Collectors.toList())).cutToFirst(5);
+        PList<Integer> cadenze = pl(1, 3, 5, 7, 9);
+        for (Integer c : cadenze) {
+            PList<Integer> numeri = pl(tutti.stream().filter((n) -> (n - c) % 10 == 0).collect(Collectors.toList())).cutToFirst(5);
             nums.add(numeri.getFirstElement());
             if (is(numeri.size() > 5)) {
                 nums.add(numeri.getSecondElement());
                 nums.add(numeri.getSecondToLastElement());
             }
             nums.add(numeri.getLastElement());
-            bet(p, TipoGiocata.CADENZE_ESTRATTE, "" + i, numeri, L24, 1);
-            modoGiocoPrimiUltimiDue(p, TipoGiocata.CADENZE_ESTRATTE, numeri, i);
+            bet(p, TipoGiocata.CADENZE_ESTRATTE, "" + c, numeri, L24, 1);
+            modoGiocoPrimiUltimiDue(p, TipoGiocata.CADENZE_ESTRATTE, numeri, c);
         }
         return nums;
     }
