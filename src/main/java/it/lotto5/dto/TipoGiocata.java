@@ -2,7 +2,7 @@ package it.lotto5.dto;
 
 public enum TipoGiocata {
 
-    AMPIEZZE_BASSE("Ampiezze Basse"), CADENZE("Cadenze"), TIPO_FREQUENZE("Tipo Frequenze"), EXTRA_RANDOM("Extra Random"), AMPIEZZE_TRA("Ampiezze Tra"), FREQUENZE_TRA("Frequenze Tra"), FREQUENZE_PUNTUALI("Frequenze Puntuali"), AMPIEZZE_PUNTUALI("Ampiezze Puntuali"), RESIDUI("Residui"), AMPIEZZE_ALTE("Ampiezze Alte"), AMPIEZZE_RANDOM("Ampiezze Random"), NUMERICO_RANDOM("Numerico Random "), VERTICALI("Verticali"), MAX_RIT("Max Rit"), CADENZE_ESTRATTE("Cadenze Estratte"), MANUALE("Manuale"), RIDUZIONE("Riduzione"), CASUALI("Casuali"), COORDSFREQS("Coords Freqs"), CADENZE_MISTE("Cadenze Miste"), RIDUZIONE_PASSATO("Riduzione dal passato"), RIDUZIONE_RESIDUI("Riduzione residui"), OTHERS("Others"), FREQUENZE_ALTE("Frequenze alte");
+    AMPIEZZE_BASSE("Ampiezze Basse"), CADENZE("Cadenze"), TIPO_FREQUENZE("Tipo Frequenze"), EXTRA_RANDOM("Extra Random"), AMPIEZZE_TRA("Ampiezze Tra"), FREQUENZE_TRA("Frequenze Tra"), FREQUENZE_PUNTUALI("Frequenze Puntuali"), AMPIEZZE_PUNTUALI("Ampiezze Puntuali"), RESIDUI("Residui"), AMPIEZZE_ALTE("Ampiezze Alte"), AMPIEZZE_RANDOM("Ampiezze Random"), NUMERICO_RANDOM("Numerico Random "), VERTICALI("Verticali"), MAX_RIT("Max Rit"), CADENZE_ESTRATTE("Cadenze Estratte"), MANUALE("Manuale"), RIDUZIONE("Riduzione"), RIDUZIONE_RITARDI("Riduzione Ritardi"), CASUALI("Casuali"), COORDSFREQS("Coords Freqs"), CADENZE_MISTE("Cadenze Miste"), RIDUZIONE_PASSATO("Riduzione dal passato"), RIDUZIONE_RESIDUI("Riduzione residui"), OTHERS("Others"), FREQUENZE_ALTE("Frequenze alte"), CODA_CIRCOLARE("Coda circolare"), RIDUZIONE_OTHERS("Riduzione Prec. 3"), RIDUZIONE_OTHERS_RESIDUI("Riduzione Prec. 3 Residui"), RANDOM("Random");
 
     private String tipo;
 

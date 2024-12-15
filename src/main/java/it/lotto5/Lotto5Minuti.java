@@ -2,7 +2,7 @@ package it.lotto5;
 
 import it.eng.pilot.*;
 import it.lotto5.dto.*;
-import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -15,10 +15,11 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Lotto5Minuti extends PilotSupport {
-
+    private Logger log = Logger.getLogger(getClass().getName());
 
     private PList<PList<Point>> allCoords = pl();
 
@@ -42,9 +43,11 @@ public class Lotto5Minuti extends PilotSupport {
 
     public PList<Ritardo> ritardiNumerici = pl();
 
+    PList<Integer> tutti = pl();
+
     public static final String REPORT = "REPORT.TXT";
 
-    public static final Integer maxNumeriSviluppati = 12;
+    public static final Integer maxNumeriSviluppati = 10;
     public static final String FREQ = "freq";
     public static final String AMPIEZZA = "ampiezza";
 
@@ -64,6 +67,7 @@ public class Lotto5Minuti extends PilotSupport {
     private final PList<Integer> L34 = pl(3, 4);
 
     private final PList<Integer> L57 = pl(5, 6, 7);
+
 
     public static boolean limitaSviluppati = true;
     public Integer bilancioFinale = 0;
@@ -100,9 +104,10 @@ public class Lotto5Minuti extends PilotSupport {
     private static final int BUFFER_SIZE = 4096;
     private Map<Integer, PList<Vincita>> vincite = new HashMap<Integer, PList<Vincita>>();
 
+
     public static void main(String[] args) throws Exception {
         Lotto5Minuti l = new Lotto5Minuti();
-        BasicConfigurator.configure();
+        //BasicConfigurator.configure();
         l.autorun();
         //l.run();
         //l.downloadEstrazioni(2);
@@ -120,6 +125,9 @@ public class Lotto5Minuti extends PilotSupport {
 
 
     private void autorun() throws Exception {
+        for (int i = 1; i <= 90; i++) {
+            tutti.add(i);
+        }
         if (coordsFreqs.isEmpty()) {
             leggiFileCoordsFreqs();
         }
@@ -145,6 +153,8 @@ public class Lotto5Minuti extends PilotSupport {
                 log("Scattati i 5 minuti ", now().getOraCompleta(), " procedo con l'elaborazione!!!!!");
                 attendiSecondi(10);
                 run();
+                ConfrontoPrecedenti cp = new ConfrontoPrecedenti(10, 9);
+                cp.run_();
                 giocateMultiple = pl();
                 giocata = pl();
                 giocate = pl();
@@ -284,16 +294,38 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoNumericoRandom(p, 2);
 */
         modoGiocoCadenzeEstratte(p);
+        //modoGiocoSeedSommatoria(p, 5, 9);
         // modoGiocoFrequenzeAlte(p, 0, 5);
         // modoGiocoFrequenzeAlte(p, 5, 10);
         // verificaNumeriInComune(1, 3, 5, 7, 10);
         //if (estrazioni.size() > 20) {
-        modoGiocoRiduzione(p, 5, 3);
+        //      log(intercettatiMsg("SVILUPPATI DA CADENZE", p.getTotaleSviluppati()));
+        modoGiocoRiduzione(p, 5, 4, p.getTotaleSviluppati(), TipoGiocata.RIDUZIONE, TipoGiocata.RIDUZIONE_RESIDUI);
+        // modoGiocoRitardi(p);
+        //modoGiocoRiduzioneDalPassato(p, 5, 1, 4);
+        //modoGiocoRiduzione(p, 5, 4, estrazioni.getSecondElement().getEstrazione(), TipoGiocata.RIDUZIONE_OTHERS, TipoGiocata.RIDUZIONE_OTHERS_RESIDUI);
+
+        /*PList<Integer> daGiocare = pl();
+        daGiocare.aggiungiList(estrazioni.getSecondElement().getEstrazione());
+        daGiocare.aggiungiList(estrazioni.get(2).getEstrazione());
+        daGiocare.aggiungiList(estrazioni.get(3).getEstrazione());
+        daGiocare = daGiocare.distinct();
+        PList<Integer> inComune3 = estrazioni.getFirstElement().getEstrazione().intersection((daGiocare)).sort();
+        log(intercettatiMsg("PRECEDENTI 3", daGiocare));
+        PList<Integer> daGiocareRidotti = daGiocare.removeRandom(daGiocare.size() - 20).sort();
+        log(intercettatiMsg("PRECEDENTI 3", daGiocareRidotti));
+        modoGiocoRiduzione(p, 5, 4, daGiocareRidotti, TipoGiocata.RIDUZIONE_OTHERS, TipoGiocata.RIDUZIONE_OTHERS_RESIDUI);
+        PList<Integer> daGiocareResidui = daGiocare.sottraiList(daGiocareRidotti).cutToFirst(20);
+        log(intercettatiMsg("PRECEDENTI 3", daGiocareResidui));
+        modoGiocoRiduzione(p, 5, 4, daGiocareResidui, TipoGiocata.RIDUZIONE_OTHERS, TipoGiocata.RIDUZIONE_OTHERS_RESIDUI);
+        /*daGiocareRidotti = daGiocare.removeRandom(daGiocare.size() - 20).sort();
+        log("Metto in gioco ", daGiocareRidotti.size(), " numeri ", getNumeriColorati(daGiocareRidotti, estrazioni.getFirstElement().getEstrazione().intersection(daGiocareRidotti)));
+        modoGiocoRiduzione(p, 5, 4, daGiocareRidotti, TipoGiocata.RIDUZIONE_OTHERS, TipoGiocata.RIDUZIONE_OTHERS_RESIDUI);*/
+
         //modoGiocoRiduzioneSottrattiva(p, 5, 3);
         //modoGiocoOthers(p);
         //modoGiocoRiduzionePari(p, 5, 3);
-       /*  modoGiocoRiduzioneDalPassato(p, 5, 1, 3, true);
-        modoGiocoRiduzioneDalPassato(p, 5, 1, 3, false);
+        /*
         modoGiocoRiduzioneDalPassato(p, 5, 3, 3, true);
         modoGiocoRiduzioneDalPassato(p, 5, 3, 3, false);
            modoGiocoRiduzioneDalPassato(p, 5, 3, 3, true);
@@ -306,7 +338,9 @@ public class Lotto5Minuti extends PilotSupport {
 
 //        modoGiocoAmpiezzePuntuali(L25, pl(4), p, false, true);
 //        modoGiocoAmpiezzePuntuali(L25, pl(5), p, false, true);
-//        modoGiocoPosizionale(frequenzeEstrattePrecedenti, p, false, true);
+        // modoGiocoPosizionale(frequenzeEstrattePrecedenti, p, false, true);
+        // modoGiocoPosizionaleFrequenzeRestanti(frequenzeEstrattePrecedenti, p, false, true);
+        // modoGiocoRiduzione(p, 5, 4, p.getTotaleSviluppati(), TipoGiocata.RIDUZIONE, TipoGiocata.RIDUZIONE_RESIDUI);
         //modoGiocoCoordsFreqs(p, numeriCoordsFreqs);
         //modoGiocoCasuali(p, 5, 20, 30);
         //modoGiocoCasuali(p, 5, 60, 70);
@@ -318,7 +352,22 @@ public class Lotto5Minuti extends PilotSupport {
         //giocaResidui(p, 10);
         //giocaResidui(p, 6);
         //modoGiocoCadenze(pl(1, 3, 5, 7, 9), p);
+
         printReport(p);
+    }
+
+    private Integer intercettati(PList<Integer> numeri) {
+        return estrazioni.getFirstElement().getEstrazione().intersection(numeri).size();
+    }
+
+    private String intercettatiMsg(String titolo, PList<Integer> numeri) throws Exception {
+        numeri = numeri.distinct().sort();
+        PList<Integer> interc = estrazioni.getFirstElement().getEstrazione().intersection(numeri).sort();
+        int totali = numeri.size();
+        String p1 = str("Totale: ", giallo(str(interc.size(), slash(), totali)));
+        String p2 = str("Intercettati: ", verde(interc.concatenaDash()));
+        String p3 = str("Sviluppati: ", getNumeriColorati(numeri, interc));
+        return strSep(tab(), biancoGrassetto(titolo), p1, p2, p3);
     }
 
     private void verificaNumeriInComune(int... giorniFa) throws Exception {
@@ -383,8 +432,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-    private void modoGiocoRiduzione(Parametri p, Integer quantiAlMassimo, Integer quantiCicli) throws Exception {
-        PList<Integer> numeri = p.getTotaleSviluppati();
+    private void modoGiocoRiduzione(Parametri p, Integer quantiAlMassimo, Integer quantiCicli, PList<Integer> numeri, TipoGiocata tg, TipoGiocata tg1) throws Exception {
         PList<Integer> numeriGiocati = pl();
         int i = 1;
         PList<Integer> all = pl();
@@ -397,28 +445,37 @@ public class Lotto5Minuti extends PilotSupport {
             all = numeri.copia();
             all = i > 1 ? all.mescola().remove(posizioniDaRimuovere).sort() : all.remove(posizioniDaRimuovere).sort();
             numeriGiocati.addAll(all);
-            betPlusInner(p, TipoGiocata.RIDUZIONE, "", all, L24, 1, -1);
+            betPlusInner(p, tg, "", all, L24, 1, -1);
             i++;
         }
-        log(str("Numeri giocati in riduzione ", numeriGiocati.distinct().size(), arrow(), getNumeriColorati(numeriGiocati.distinct(), p.getTotaleIntercettati())));
-        PList<Integer> restanti = numeri.sottraiList(numeriGiocati).sort();
-        log(str("Numeri restanti ", restanti.size(), arrow(), getNumeriColorati(restanti, p.getTotaleIntercettati())));
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", restanti.random(5), L24, 1, -1);
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", restanti.random(5), L24, 1, -1);
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", restanti.random(5), L24, 1, -1);
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", restanti.random(5), L24, 1, -1);
+        numeriGiocati = numeriGiocati.distinct().sort();
+        all = numeriGiocati.sort().copia();
         PList<Integer> due = pl();
+        due.add(all.getFirstElement());
+        due.add(all.getSecondElement());
+        due.add(all.getSecondToLastElement());
+        due.add(all.getLastElement());
+        betPlusInner(p, tg, "", due, L24, 1, -1);
+        betPlusInner(p, tg, "", all.sottraiList(due).random(5), L24, 1, -1);
+        log(str("Numeri giocati in riduzione ", numeriGiocati.size(), arrow(), getNumeriColorati(numeriGiocati, estrazioni.getFirstElement().getEstrazione().intersection(numeriGiocati))));
+        /*PList<Integer> restanti = numeri.sottraiList(numeriGiocati).sort();
+        log(str("Numeri restanti ", restanti.size(), arrow(), getNumeriColorati(restanti, estrazioni.getFirstElement().getEstrazione().intersection(restanti))));
+        betPlusInner(p, tg1, "", restanti.random(5), L24, 1, -1);
+        betPlusInner(p, tg1, "", restanti.random(5), L24, 1, -1);
+        betPlusInner(p, tg1, "", restanti.random(5), L24, 1, -1);
+        due = pl();
         due.add(restanti.getFirstElement());
         due.add(restanti.getSecondElement());
         due.add(restanti.getSecondToLastElement());
         due.add(restanti.getLastElement());
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", due, L24, 1, -1);
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", restanti.sottraiList(due).random(5), L24, 1, -1);
-        betPlusInner(p, TipoGiocata.RIDUZIONE_RESIDUI, "", restanti.sottraiList(due).random(5), L24, 1, -1);
-        log("Esco dalla riduzione");
+        betPlusInner(p, tg1, "", due, L24, 1, -1);
+        betPlusInner(p, tg1, "", restanti.sottraiList(due).random(5), L24, 1, -1);
+        betPlusInner(p, tg1, "", restanti.sottraiList(due).random(5), L24, 1, -1);*/
     }
 
+
     private String getNumeriColorati(PList<Integer> numeri, PList<Integer> interc) throws Exception {
+        numeri.cleanNull();
         String out = " ";
         String num = "";
         for (Integer n : numeri) {
@@ -453,7 +510,7 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
-    private void modoGiocoRiduzioneDalPassato(Parametri p, Integer quantiAlMassimo, Integer giorniFa, Integer
+    private void modoGiocoRiduzioneDalPassatoOld(Parametri p, Integer quantiAlMassimo, Integer giorniFa, Integer
             quantiCicli, boolean inAvanti) throws Exception {
         loadEstrazioniPassate(giorniFa);
         if (inAvanti)
@@ -478,10 +535,27 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
 
+    private void modoGiocoRiduzioneDalPassato(Parametri p, Integer quantiAlMassimo, Integer giorniFa, Integer
+            quantiCicli) throws Exception {
+        if (estrazioniPassate.isEmpty())
+            loadEstrazioniPassate(giorniFa);
+        PList<Integer> numeri = estrazioniPassate.eq("numero", estrazioni.getFirstElement().getNumero()).findOne().getExtra();
+        modoGiocoRiduzione(p, quantiAlMassimo, quantiCicli, numeri, TipoGiocata.RIDUZIONE_PASSATO, TipoGiocata.RIDUZIONE_RESIDUI);
+    }
+
+
     private void bet(Parametri p, TipoGiocata tg, String
             suffix, PList<Integer> numeri, PList<Integer> lunghezze, Integer quantePerLunghezza) throws Exception {
         Integer quanteGiocate = giocaNumeri(tg, numeri, lunghezze, quantePerLunghezza);
         impostaReportCosti(p, tg.getTipo() + tab() + suffix, quanteGiocate, numeri);
+    }
+
+    private void betPariDispari(Parametri p, TipoGiocata tg, String
+            suffix, PList<Integer> numeri, PList<Integer> lunghezze, Integer quantePerLunghezza, boolean plusInner) throws Exception {
+        Integer quanteGiocate = giocaNumeriPariDispari(tg, numeri, lunghezze, quantePerLunghezza);
+        impostaReportCosti(p, tg.getTipo() + tab() + suffix, quanteGiocate, numeri);
+        modoGiocoInner(p, tg, numeri.pari(), -1);
+        modoGiocoInner(p, tg, numeri.dispari(), -1);
     }
 
     private void betPlusInner(Parametri p, TipoGiocata tg, String
@@ -555,11 +629,12 @@ public class Lotto5Minuti extends PilotSupport {
 
     private void modoGiocoInner(Parametri p, TipoGiocata tg, PList<Integer> numeri, Integer cadenza) throws
             Exception {
-        numeri = numeri.sort();
+        numeri = numeri.distinct().sort();
+        if (numeri.size() <= 3) return;
         PList<Integer> nums = pl();
-        String cad = cadenza.toString();
+        String cad = cadenza.toString() + " Inner ";
         if (cadenza.intValue() == -1) {
-            cad = "";
+            cad = " Inner ";
         }
         nums.add(numeri.getFirstElement());
         if (numeri.size() > 5) {
@@ -579,6 +654,8 @@ public class Lotto5Minuti extends PilotSupport {
             nums.add(numeri.getSecondElement());
             nums.add(numeri.getSecondToLastElement());
             bet(p, tg, cad, nums, L24, 1);
+            bet(p, tg, cad, numeri.dropLast(), L24, 1);
+            bet(p, tg, cad, numeri.cutToLast(numeri.size() - 1), L24, 1);
         }
         if (numeri.size() == 5) {
             nums = pl();
@@ -605,6 +682,35 @@ public class Lotto5Minuti extends PilotSupport {
         }
     }
 
+    private void modoGiocoSeedSommatoria(Parametri p, Integer quanteSchedine, Integer quantiNumeri) throws Exception {
+        Random r = new Random(estrazioni.getSecondElement().getEstrazione().sommatoria(Integer.class));
+        PList<Integer> nums = pl();
+        int min = 1;
+        int max = 90;
+        for (int k = 1; k <= quanteSchedine; k++) {
+            nums.clear();
+            for (int j = 1; j <= quantiNumeri; j++) {
+                int val = r.nextInt(max - min + 1) + min;
+                if (nums.contains(val)) {
+                    j--;
+                    continue;
+                }
+                nums.add(val);
+            }
+            betPlusInner(p, TipoGiocata.RANDOM, "", nums, L25, 1, -1);
+        }
+    }
+
+    private void modoGiocoRitardi(Parametri p) throws Exception {
+        PList<Integer> numeri = pl();
+        for (String r : pl(readFile(RITARDI).subList(3, 23))) {
+            numeri.add(getInteger(split(r, arrow()).getFirstElement()));
+        }
+        numeri = numeri.sort();
+        log("Gioco numeri ritardi", numeri.concatenaDash());
+        modoGiocoRiduzione(p, 5, 4, numeri, TipoGiocata.RIDUZIONE_RITARDI, TipoGiocata.RIDUZIONE_RESIDUI);
+    }
+
     private void modoGiocoCadenzeEstratte(Parametri p) throws Exception {
         PList<Integer> tutti = pl();
         for (Estrazione5Minuti e : estrazioni.subList(1, 5)) {
@@ -622,7 +728,6 @@ public class Lotto5Minuti extends PilotSupport {
                 modoGiocoInner(p, TipoGiocata.CADENZE_ESTRATTE, num2, c);
             }*/
         }
-        log("Esco dalle cadenze estratte");
     }
 
     private void modoGiocoRiduzionePari(Parametri p, Integer quantiAlMassimo, Integer quantiCicli) throws Exception {
@@ -769,8 +874,7 @@ public class Lotto5Minuti extends PilotSupport {
     private void modoGiocoFrequenzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> freqs, Parametri
             p, boolean togliNumeriEstrazionePrecedente) throws Exception {
         PList<Integer> numeri = getNumeriFrequenzePuntuali(freqs, p, togliNumeriEstrazionePrecedente);
-        Integer quanteGiocate = giocaNumeri(TipoGiocata.FREQUENZE_PUNTUALI, numeri, lunghezzeAmmesse, 3);
-        p.getReport().getLastElement().setCosto(quanteGiocate);
+        bet(p, TipoGiocata.FREQUENZE_PUNTUALI, freqs.concatenaDash(), numeri, lunghezzeAmmesse, 3);
     }
 
     private void modoGiocoFrequenzeAlte(Parametri p, Integer da, Integer a) throws Exception {
@@ -779,16 +883,23 @@ public class Lotto5Minuti extends PilotSupport {
         modoGiocoInner(p, TipoGiocata.FREQUENZE_ALTE, numeri, -1);
     }
 
+    private void modoGiocoFrequenze(Parametri p, Integer da, Integer a) throws Exception {
+        PList<Integer> numeri = pl(p.getFrequenze().sortDesc(FREQ).subList(da, a)).narrow(NUMERO);
+        bet(p, TipoGiocata.FREQUENZE_ALTE, "", numeri, L24, 1);
+        modoGiocoInner(p, TipoGiocata.FREQUENZE_ALTE, numeri, -1);
+    }
+
     private void modoGiocoFrequenzePuntuali(PList<Integer> lunghezzeAmmesse, PList<Integer> freqs, Parametri
             p, boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+        freqs = freqs.distinct().sort();
         if (!pariDispari)
             modoGiocoFrequenzePuntuali(lunghezzeAmmesse, freqs, p, togliNumeriEstrazionePrecedente);
         else {
-            limitaSviluppati = false;
             PList<Integer> numeri = getNumeriFrequenzePuntuali(freqs, p, togliNumeriEstrazionePrecedente);
-            limitaSviluppati = true;
-            Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, lunghezzeAmmesse, 1);
-            p.getReport().getLastElement().setCosto(quanteGiocate);
+            betPariDispari(p, TipoGiocata.FREQUENZE_PUNTUALI, freqs.concatenaDash(), numeri, lunghezzeAmmesse, 1, true);
+            //betPariDispari(p, TipoGiocata.FREQUENZE_PUNTUALI, freqs.concatenaDash(), n2, lunghezzeAmmesse, 1, true);
+            //Integer quanteGiocate = giocaNumeriPariDispari(TipoGiocata.FREQUENZE_PUNTUALI, numeri, lunghezzeAmmesse, 1);
+            //p.getReport().getLastElement().setCosto(quanteGiocate);
         }
     }
 
@@ -1071,30 +1182,105 @@ public class Lotto5Minuti extends PilotSupport {
     }
 
     //Modalità di gioco per posizione nell'array di frequenze estratte precedente bottom, medium , top
-    private void modoGiocoPosizionale(PList<Integer> frequenzeEstrattePrecedenti, Parametri p,
-                                      boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+    private void modoGiocoPosizionaleOld(PList<Integer> frequenzeEstrattePrecedenti, Parametri p,
+                                         boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
         Integer quanteFrequenzeDistinte = frequenzeEstrattePrecedenti.size();
         Integer posizioneMedia = quanteFrequenzeDistinte / 2 - 1;
         Integer low = posizioneMedia - 1;
         Integer high = posizioneMedia + 2;
         PList<Integer> intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
-        modoGiocoFrequenzePuntuali(L26, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
 
 
         low = 1;
         high = 3;
         intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
-        modoGiocoFrequenzePuntuali(L26, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
 
 
         low = quanteFrequenzeDistinte - 5;
         high = quanteFrequenzeDistinte - 2;
         intervalloFrequenze = pl(frequenzeEstrattePrecedenti.subList(low, high));
-        modoGiocoFrequenzePuntuali(L26, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
     }
 
+
+    private void modoGiocoPosizionale(PList<Integer> frequenzeEstrattePrecedenti, Parametri p,
+                                      boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+        PList<Integer> freqDistinte = frequenzeEstrattePrecedenti.distinct().sort();
+        PList<Integer> freqGiocate = pl();
+        log("Frequenze distinte precedenti", freqDistinte.concatenaDash());
+        Integer quanteFrequenzeDistinte = freqDistinte.size();
+        Integer posizioneMedia = quanteFrequenzeDistinte / 2 - 1;
+        Integer low = limiteInferiore(posizioneMedia - 1, 0);
+        Integer high = limiteSuperiore(posizioneMedia + 2, quanteFrequenzeDistinte - 1);
+        PList<Integer> intervalloFrequenze = pl(freqDistinte.subList(low, high));
+        intervalloFrequenze = intervalloFrequenze.sort();
+        freqGiocate.addAll(intervalloFrequenze);
+        log("primo intervallo", intervalloFrequenze.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+
+
+        intervalloFrequenze.clear();
+        intervalloFrequenze.add(freqDistinte.getSecondElement());
+        intervalloFrequenze.add(freqDistinte.get(2));
+        intervalloFrequenze.add(freqDistinte.get(3));
+        intervalloFrequenze = intervalloFrequenze.sort();
+        freqGiocate.addAll(intervalloFrequenze);
+        log("secondo intervallo", intervalloFrequenze.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+
+
+        intervalloFrequenze.clear();
+        intervalloFrequenze.add(freqDistinte.getSecondToLastElement());
+        intervalloFrequenze.add(freqDistinte.get(freqDistinte.size() - 3));
+        intervalloFrequenze.add(freqDistinte.get(freqDistinte.size() - 4));
+        intervalloFrequenze = intervalloFrequenze.sort();
+        freqGiocate.addAll(intervalloFrequenze);
+        log("terzo intervallo", intervalloFrequenze.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+      /*  PList<Integer> freqResidue = freqDistinte.sottraiList(freqGiocate).sort();
+        log("residui intervallo", freqResidue.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, freqResidue, p, togliNumeriEstrazionePrecedente, pariDispari);*/
+    }
+
+
+    private void modoGiocoPosizionaleFrequenzeRestanti(PList<Integer> frequenzeEstrattePrecedenti, Parametri p,
+                                                       boolean togliNumeriEstrazionePrecedente, boolean pariDispari) throws Exception {
+        PList<Integer> fre = leggiFrequenze(FREQUENZE).narrowDistinct(FREQ);
+        PList<Integer> freqDistinte = frequenzeEstrattePrecedenti.distinct().sort();
+        PList<Integer> freqGiocate = fre.sottraiList(freqDistinte).sort();
+        log("Frequenze restanti", freqGiocate.concatenaDash());
+        Integer quanteFrequenzeDistinte = freqGiocate.size();
+        Integer posizioneMedia = quanteFrequenzeDistinte / 2 - 1;
+        Integer low = limiteInferiore(posizioneMedia - 1, 0);
+        Integer high = limiteSuperiore(posizioneMedia + 2, quanteFrequenzeDistinte - 1);
+        PList<Integer> intervalloFrequenze = pl(freqGiocate.subList(low, high));
+        intervalloFrequenze = intervalloFrequenze.sort();
+        log("primo intervallo", intervalloFrequenze.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+
+
+        intervalloFrequenze.clear();
+        intervalloFrequenze.add(freqGiocate.getSecondElement());
+        intervalloFrequenze.add(freqGiocate.get(2));
+        intervalloFrequenze.add(freqGiocate.get(3));
+        intervalloFrequenze = intervalloFrequenze.sort();
+        log("secondo intervallo", intervalloFrequenze.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+
+
+        intervalloFrequenze.clear();
+        intervalloFrequenze.add(freqGiocate.getSecondToLastElement());
+        intervalloFrequenze.add(freqGiocate.get(freqGiocate.size() - 3));
+        intervalloFrequenze.add(freqGiocate.get(freqGiocate.size() - 4));
+        intervalloFrequenze = intervalloFrequenze.sort();
+        log("terzo intervallo", intervalloFrequenze.concatenaDash());
+        modoGiocoFrequenzePuntuali(L25, intervalloFrequenze, p, togliNumeriEstrazionePrecedente, pariDispari);
+    }
+
+
     private void printReport(Parametri p) {
-        log("STAMPO IL REPORT!");
         log(lf());
         p.getReport().forEach(System.out::println);
         PList<Integer> totaleIntercettati = p.getTotaleIntercettati();
@@ -1144,32 +1330,6 @@ public class Lotto5Minuti extends PilotSupport {
         return quanteGiocate;
     }
 
-    private PList<PList<Integer>> generaCombinazioni(PList<Integer> numeri, Integer k) {
-        PList<PList<Integer>> ct = pl();
-        Integer[] arr = toArray(numeri, Integer.class);
-        PList<Integer> tempList = pl();
-        combinazioni(arr.length, k, arr, 0, tempList, ct);
-        return ct;
-    }
-
-    private void combinazioni(int n, int k, Integer[] data, int start, PList<
-            Integer> tempList, PList<PList<Integer>> ct) {
-        if (tempList.size() == k) {
-            PList<Integer> e = pl();
-            for (Integer i : tempList) {
-                e.add(i);
-            }
-            ct.add(e);
-            return;
-        }
-
-        for (int i = start; i < n; i++) {
-            tempList.add(data[i]);
-            combinazioni(n, k, data, i + 1, tempList, ct);
-            tempList.remove(tempList.size() - 1);
-        }
-    }
-
 
     private Integer giocaNumeri(TipoGiocata
                                         tipoGiocata, PList<Integer> numeri, PList<Integer> lunghezzeGiocate, int quantePerLunghezza) {
@@ -1186,22 +1346,6 @@ public class Lotto5Minuti extends PilotSupport {
         return quanteGiocate;
     }
 
-    private Integer giocaNumeriTutteCombinazioni(TipoGiocata
-                                                         tipoGiocata, PList<Integer> numeri, PList<Integer> lunghezzeGiocate) {
-        Integer quanteGiocate = 0;
-        if (numeri.size() < lunghezzeGiocate.min()) {
-            return 0;
-        }
-        PList<String> intermedie = pl();
-        for (Integer l : lunghezzeGiocate) {
-            PList<PList<Integer>> combs = generaCombinazioni(numeri, l);
-            quanteGiocate = quanteGiocate + combs.size();
-            for (PList<Integer> c : combs) {
-                addGiocata(tipoGiocata.getTipo(), c);
-            }
-        }
-        return quanteGiocate;
-    }
 
     private Integer giocaNumeri(TipoGiocata tipoGiocata, PList<Integer> numeri) {
         Integer quanteGiocate = 0;
@@ -1313,16 +1457,42 @@ public class Lotto5Minuti extends PilotSupport {
                                                       boolean togliNumeriUltimaEstrazione) throws Exception {
         if (Null(freqs)) return pl();
         PList<Integer> numeriSviluppati = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
-        if (limitaSviluppati)
-            while (numeriSviluppati.size() > maxNumeriSviluppati && freqs.size() > 0) {
-                freqs = freqs.dropLast();
-                numeriSviluppati = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
-            }
+        numeriSviluppati = numeriSviluppati.sort();
+        if (limitaSviluppati) {
+            int intFull = intercettati(numeriSviluppati);
+            int dim = numeriSviluppati.size();
+            numeriSviluppati = numeriSviluppati.cutToFirst(maxNumeriSviluppati);
+            int intRidotti = intercettati(numeriSviluppati);
+            log("Trovati ", dim, " numeri da ridurre a ", maxNumeriSviluppati, tab(), verde(str("   Intercettati ", intFull, " numeri ", arrow(), intRidotti)));
+        }
         if (togliNumeriUltimaEstrazione) {
             numeriSviluppati = numeriSviluppati.sottraiList(estrazioni.get(1).getEstrazione());
         }
-        p.getReport().add(new Report(str(TipoGiocata.FREQUENZE_PUNTUALI.getTipo(), space(), freqs.distinct().concatenaDash(), " Ampiezze: ", p.getAmpiezze().in(FREQ, freqs).find().narrowDistinct(AMPIEZZA).concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
         return numeriSviluppati;
+    }
+
+
+    private PList<PList<Integer>> getNumeriTotaliFrequenzePuntuali(PList<Integer> freqs, Parametri p,
+                                                                   boolean togliNumeriUltimaEstrazione) throws Exception {
+        if (Null(freqs)) return pl();
+        PList<PList<Integer>> totali = pl();
+        PList<Integer> numeriSviluppati = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
+        numeriSviluppati = numeriSviluppati.sort();
+        PList<Integer> numeriCopia = numeriSviluppati.copia();
+        if (limitaSviluppati)
+            /*while (numeriSviluppati.size() > maxNumeriSviluppati && freqs.size() > 0) {
+                freqs = freqs.dropLast();
+                numeriSviluppati = p.getFrequenze().in(FREQ, freqs).find().narrowDistinct(NUMERO);
+            }*/
+            numeriCopia = numeriCopia.cutToFirst(maxNumeriSviluppati);
+
+        if (togliNumeriUltimaEstrazione) {
+            numeriCopia = numeriCopia.sottraiList(estrazioni.get(1).getEstrazione());
+        }
+        totali.add(numeriCopia);
+        totali.add(numeriSviluppati.sottraiList(numeriCopia).sort());
+        // p.getReport().add(new Report(str(TipoGiocata.FREQUENZE_PUNTUALI.getTipo(), space(), freqs.distinct().concatenaDash(), " Ampiezze: ", p.getAmpiezze().in(FREQ, freqs).find().narrowDistinct(AMPIEZZA).concatenaDash()), freqs, numeriSviluppati, trovaNumeriEstratti(numeriSviluppati)));
+        return totali;
     }
 
 

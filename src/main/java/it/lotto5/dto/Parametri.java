@@ -49,7 +49,8 @@ public class Parametri extends PilotSupport {
         for (Report r : getReport()) {
             totaleSviluppati.addAll((r.getSviluppati()));
         }
-        return totaleSviluppati.distinct();
+        totaleSviluppati.cleanNull();
+        return totaleSviluppati.sort().distinct();
     }
 
     public PList<Integer> getTotaleIntercettati() {
@@ -57,7 +58,7 @@ public class Parametri extends PilotSupport {
         for (Report r : getReport()) {
             totaleIntercettati.addAll(r.getIntercettati());
         }
-        return totaleIntercettati.distinct();
+        return totaleIntercettati.sort().distinct();
     }
 
     public PList<Integer> getNumeriSviluppati() {
