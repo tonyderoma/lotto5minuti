@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ConfrontoPrecedenti extends PilotSupport {
     public static final String YYYY_MM_DD = "yyyy-MM-dd";
@@ -24,7 +26,7 @@ public class ConfrontoPrecedenti extends PilotSupport {
 
     public static void main(String[] args) throws Exception {
         ConfrontoPrecedenti cp = new ConfrontoPrecedenti();
-        cp.autorun();
+        cp.stampaEstrazioni(15);
     }
 
     public ConfrontoPrecedenti() {
@@ -62,9 +64,65 @@ public class ConfrontoPrecedenti extends PilotSupport {
     }
 
 
+    private void analizza() throws Exception {
+
+        for (String s : readFile(CONFRONTO_PRECEDENTI)) {
+
+
+        }
+
+    }
+
+
+    private void stampaEstrazioni(int g) throws Exception {
+        PList<String> valori = pl();
+        PList<PList<Integer>> storico = pl();
+        for (int i = g; i >= 1; i--) {
+            PDate data = giorniFa(i);
+            download(data);
+            PList<Estrazione5Minuti> estrazioni_ = loadEstrazioniPassate(data);
+            for (Estrazione5Minuti e : estrazioni_.inverti()) {
+                storico.add(e.getEstrazione());
+                valori.add(e.getEstrazione().concatena(space()));
+            }
+        }
+        download(now());
+        for (Estrazione5Minuti e : loadEstrazioni().inverti()) {
+            storico.add(e.getEstrazione());
+            valori.add(e.getEstrazione().concatena(space()));
+        }
+        Map<Integer, Integer> freqs = new HashMap<>();
+        for (PList<Integer> lista : storico) {
+            for (Integer i : lista) {
+                if (freqs.containsKey(i)) {
+                    freqs.put(i, freqs.get(i) + 1);
+                } else {
+                    freqs.put(i, 1);
+                }
+            }
+        }
+        PList<Frequenza> ff = pl();
+        for (Map.Entry<Integer, Integer> entry : freqs.entrySet()) {
+            Frequenza f = new Frequenza(entry.getKey(), entry.getValue());
+            ff.add(f);
+        }
+
+        PList<Integer> numeri = ff.sortDesc("freq").narrow("numero");
+        PList<Integer> posizioni = pl();
+        for (Integer i : estrazioni.getLastElement().getEstrazione()) {
+            posizioni.add(numeri.indexOf(i) + 1);
+        }
+        log("Estratti", biancoGrassetto(estrazioni.getLastElement().getEstrazione().concatenaDash()));
+        //log("Posizioni classifica storico frequenze", posizioni.concatenaDash());
+        log("Posizioni ordinate classifica storico frequenze", biancoGrassetto(posizioni.sort().concatenaDash()));
+        writeFile("storicoFrequenze.txt", ff.sortDesc("freq"));
+        writeFile("storicoEstrazioni.txt", valori);
+    }
+
+
     private void verifica(int g, int quanti) throws Exception {
         PList<Presi> presi = pl();
-        PList<Integer> ultima = estrazioni.getFirstElement().getEstrazione();
+        PList<Integer> ultima = estrazioni.getFirstNotNullElement().getEstrazione();
         log("VERIFICO", estrazioni.getFirstElement().getNumero(), dash(), estrazioni.getFirstElement().getDataString(), tab(), biancoGrassetto(ultima.concatenaDash()));
         for (int i = 1; i <= g; i++) {
             PDate data = giorniFa(i);
@@ -76,14 +134,15 @@ public class ConfrontoPrecedenti extends PilotSupport {
                 if (q >= quanti) {
                     String s = getNumeriColorati(e.getEstrazione(), inComune);
                     String descr = str(e.getNumero(), tab(), e.getDataString(), arrow(), s);
-                    String message = str(quadra(), strSepPipe(q, p.daysBetween(nowString(), data.toString()), e.getNumero()), quadraClose());
-                    presi.add(new Presi(estrazioni.getFirstElement().getNumero(), q, descr, message));
+                    int giorni = now().daysBetween(data);
+                    String message = str(quadra(), strSepPipe(q, giorni, e.getNumero()), quadraClose());
+                    presi.add(new Presi(estrazioni.getFirstElement().getNumero(), giorni, q, descr, message, e.getNumero()));
                 }
             }
         }
         if (notNull(presi)) {
             String m = str(presi.getFirstElement().getNumero().toString(), arrow());
-            for (Presi pr : presi.sortDesc("quanti").cutToFirst(5)) {
+            for (Presi pr : presi.sort("giorni").sortDesc("quanti").cutToFirst(5)) {
                 m = strSepSpace(m, pr.getMessage());
             }
             log(m);
@@ -111,6 +170,11 @@ public class ConfrontoPrecedenti extends PilotSupport {
         cont.forEach((s -> {
             estrazioni.add(new Estrazione5Minuti((s)));
         }));
+        PList<String> valori = pl();
+        for (Estrazione5Minuti es : estrazioni) {
+            valori.add(es.getEstrazione().concatena(space()));
+        }
+        writeFile("numeriEstratti.txt", valori);
         return estrazioni;
     }
 
@@ -126,7 +190,7 @@ public class ConfrontoPrecedenti extends PilotSupport {
     }
 
     private void download(PDate d) throws Exception {
-        if (!is(d.toString(), now().toString())) {
+        if (!d.isToday()) {
             if (fileExists(str("estrazioni/", d.toStringFormat("dd-MM-YYYY"), dot(), "txt"))) return;
         }
         java.net.URL url = new URL(str(URL, d.toStringFormat(YYYY_MM_DD)));
@@ -139,7 +203,7 @@ public class ConfrontoPrecedenti extends PilotSupport {
             InputStream inputStream = httpConn.getInputStream();
             // opens an output stream to save into file
             FileOutputStream outputStream = null;
-            if (is(d.toString(), now().toString())) {
+            if (d.isToday()) {
                 outputStream = new FileOutputStream(FILE);
             } else {
                 outputStream = new FileOutputStream(str("estrazioni/", d.toStringFormat("dd-MM-YYYY"), dot(), "txt"));
