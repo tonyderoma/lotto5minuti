@@ -1324,7 +1324,6 @@ public class Lotto5Minuti extends PilotSupport {
             for (int i = tutti ? 0 : 1; i < estrazioni.size(); i++) {
                 if (estrazioni.get(i).getEstrazione().contains(k)) {
                     ritardi.put(k, new Ritardo(k, i, estrazioni.get(i).getDataString()));
-                    break;
                 }
             }
         }
