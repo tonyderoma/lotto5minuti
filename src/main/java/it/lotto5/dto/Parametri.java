@@ -7,6 +7,8 @@ public class Parametri extends PilotSupport {
 
     private PList<Report> report = pl();
 
+    private PList<Ritardo> ritardi = pl();
+
     private PList<Frequenza> frequenze = pl();
 
     private PList<Ampiezza> ampiezze = pl();
@@ -69,4 +71,11 @@ public class Parametri extends PilotSupport {
         this.numeriSviluppati = numeriSviluppati;
     }
 
+    public PList<Ritardo> getRitardi() {
+        return ritardi;
+    }
+
+    public void setRitardi(PList<Ritardo> ritardi) {
+        this.ritardi = ritardi;
+    }
 }

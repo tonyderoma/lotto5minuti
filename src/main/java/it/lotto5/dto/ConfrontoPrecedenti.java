@@ -58,8 +58,8 @@ public class ConfrontoPrecedenti extends PilotSupport {
     }
 
 
-    public void run_() throws Exception {
-        loadEstrazioni();
+    public void run_(PList<Estrazione5Minuti> estrazioni) throws Exception {
+        this.estrazioni = estrazioni;
         verifica(giorniPassati, almeno);
     }
 
@@ -122,6 +122,7 @@ public class ConfrontoPrecedenti extends PilotSupport {
 
     private void verifica(int g, int quanti) throws Exception {
         PList<Presi> presi = pl();
+
         PList<Integer> ultima = estrazioni.getFirstNotNullElement().getEstrazione();
         log("VERIFICO", estrazioni.getFirstElement().getNumero(), dash(), estrazioni.getFirstElement().getDataString(), tab(), biancoGrassetto(ultima.concatenaDash()));
         for (int i = 1; i <= g; i++) {

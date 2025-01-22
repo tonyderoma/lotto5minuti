@@ -40,6 +40,9 @@ public class Estrazione5Minuti extends PilotSupport {
 
     private String tipoGiocata = "";
 
+    public Estrazione5Minuti() {
+    }
+
     public Estrazione5Minuti(String row) {
         String nums = substring(row, tab(), false, false, tab2(), false, true);
         String ori = substring(row, tab2(), false, true, null, false, false);
